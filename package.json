@@ -1,0 +1,21 @@
+{
+  "name": "can-derive",
+  "version": "0.0.1",
+  "description": "Derive a list/map from another via binding",
+  "main": "can-derive.js",
+  "dependencies": {
+    "can": "2.2.X"
+  },
+  "devDependencies": {
+  	"steal": "^0.10.1",
+  	"steal-qunit": "0.0.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "CanJS"
+  ],
+  "author": "Bitovi",
+  "license": "MIT"
+}
