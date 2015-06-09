@@ -34,6 +34,36 @@ Map.prototype.filter = function (predicate) {
     return derived;
 };
 
+Map.prototype.pluck = function (attr) {
+    var derived = new this.constructor();
+    var computedCollection = new ComputeCollection(this);
+
+    computedCollection.bind('key', function (ev, newKey, oldKey, computes) {
+
+        // Remove
+        if (derived._isValidKey(oldKey)) {
+            derived.removeAttr(oldKey);
+        }
+
+        // Add
+        derived.attr(newKey, computes.value());
+    });
+
+    computedCollection.bind('value', function (ev, newVal, oldVal, computes) {
+        derived.attr(computes.key(), computes.value());
+    });
+
+    computedCollection.attr('valueFn', function (item, i) {
+        return item && can.isFunction(item.attr) ? item.attr(attr) : item;
+    });
+
+    computedCollection.attr('keyFn', function (item, sourceKey) {
+        return sourceKey;
+    });
+
+    return derived;
+};
+
 // TODO: Learn about helpers
 // TODO: Move this into a helper
 Map.prototype._isValidKey = function (key) {

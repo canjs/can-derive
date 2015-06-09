@@ -50,8 +50,10 @@ List.prototype._filter = function () {
     var derived = new this.constructor();
     var computedCollection = new ComputeCollection(this);
 
+    // For now, this is to check the intermediary derived computes in the test
     derived._source = this;
 
+    // TODO: Bind directly to sourceIndex, since key acts as a proxy here
     computedCollection.bind('key', function (ev, newVal, oldVal, computes) {
         if (derived._isValidKey(oldVal) &&
                 derived.attr(oldVal) === computes.value()) {
