@@ -3,7 +3,7 @@ var Map = require("can/map/map");
 var List = require("can/list/list");
 var derive = require('./compute-collection');
 
-QUnit.module('compute-collection', {
+QUnit.module('can/compute-collection', {
     setup: function () {}
 });
 
@@ -87,14 +87,18 @@ can.each([
         var source = sample.source();
         var collection = new can.ComputeCollection(source);
 
+        // Setup binding to source
+        collection.bind('key', can.noop);
+
         collection.attr('keyFn', function (item, i) {
             ok(true, 'keyFn was run');
             return i;
         });
 
-        collection.bind('key', function (ev, oldKey, newKey, computes) {
+        // Listen for key change
+        collection.bind('key', function (ev, newKey, oldKey, computes) {
             ok(true, '"key" event was dispatched');
-            equal(oldKey, undefined, '"oldKey" is undefined because of "set"');
+            equal(oldKey, undefined, '"oldKey" is `undefined` because it was an "add"');
             equal(newKey, 3, '"newKey" is the correct value');
             equal(typeof computes, 'object', '"computes" are passed');
             equal(computes.sourceKey(), newKey, '"sourceKey" matches "newKey"');
@@ -135,5 +139,7 @@ can.each([
 
         equal(length, 0, 'There are no items in the store');
     });
+
+    // TODO: Test that removing an item unbinds its computes
 
 });
