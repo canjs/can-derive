@@ -1,37 +1,45 @@
 var Map = require('can/map/map');
 var List = require('can/list/list');
 var ComputeCollection = require('../compute-collection/compute-collection');
-require('can/list/sort/sort');
+var RedBlackTree = require('can-redblacktree').RBTree;
 
+// Handle the adding/removing of items to the derived list based on
+// the predicate
 List.prototype.filter = function (predicate) {
 
     // Derive a list of computes sorted by sourceKey
     var derived = new this.constructor();
     var computedCollection = new ComputeCollection(this);
-
-    derived.attr('comparator', function (a, b) {
+    var tree = new RedBlackTree(function (a, b) {
         a = a.sourceKey();
         b = b.sourceKey();
         return a === b ? 0 : a < b ? -1 : 1; // Ascending
     });
 
-    // Bind to "key" because their value cannot naturally be `undefined`
+    // NOTE: Bind to "key" because their value cannot naturally be `undefined`
     // like a "value" can. In other words, don't exclude an item because it's
     // "value" is `undefined`.
     computedCollection.bind('key', function (ev, newKey, oldKey, computes) {
+        var insertIndex, removeIndex;
+
+        // The "key" will either be true or false per the rules of the predicate
+        // so we only need to handle add/remove (not a change in index)
+        // TODO: Handle a change in index
         if (computes.key()) {
 
-            // Add
-            derived.push(computes);
-        } else {
-            derived.each(function (item, i) {
+            // Get the index to insert at
+            insertIndex = tree.insert(computes);
 
-                // Remove
-                if (item.sourceKey() === computes.sourceKey()) {
-                    derived.splice(i, 1);
-                    return false;
-                }
-            });
+            // Insert
+            if (insertIndex >= 0) {
+                derived.splice(insertIndex, 0, computes);
+            }
+        } else {
+            removeIndex = tree.remove(computes);
+
+            if (removeIndex >= 0) {
+                derived.splice(removeIndex, 1);
+            }
         }
     });
 
@@ -46,6 +54,7 @@ List.prototype.filter = function (predicate) {
     return derived._filter();
 };
 
+// Move items based on sourceKey changes
 List.prototype._filter = function () {
     var derived = new this.constructor();
     var computedCollection = new ComputeCollection(this);
@@ -86,6 +95,8 @@ List.prototype._filter = function () {
     });
 
     computedCollection.attr('keyFn', function (computes, sourceIndex) {
+        // Even though ComputeCollection binds to sourceIndex, something has
+        // to be returned so that the compute fires "change" events
         return sourceIndex;
     });
 

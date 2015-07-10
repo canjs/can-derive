@@ -1,118 +1,135 @@
+var can = require('can/util/util');
 var compute = require('can/compute/compute');
 var Map = require('can/map/map');
 var List = require('can/list/list');
+var RedBlackTree = require('can-redblacktree').RBTree;
 
-var MapStore = can.Construct({}, {
-    init: function () {
-        this._store = {};
+var MapCollection = {
+    _makeStore: function () {
+        return {};
     },
-    add: function (computes) {
-        this._store[computes.sourceKey()] = computes;
+    _subscribe: function () {
+        var self = this;
+
+        // TODO: Submit PR to emit add/remove events on can.Map's
+        this._source.bind('change', function (ev, attr, how, newVal, oldVal) {
+            if (how === 'add') {
+                self._addItem(attr);
+            } else if (how === 'remove') {
+                self._removeItem(attr);
+            }
+        });
     },
-    remove: function (computes) {
-        delete this._store[computes.sourceKey()];
+    _getCompute: function (sourceKey) {
+        return this._collection[sourceKey];
+    },
+    __addItem: function (sourceKey) {
+        var computes = this._bindToKeyValueChange(sourceKey);
+
+        this._collection[sourceKey] = computes;
+    },
+    __removeItem: function (sourceKey) {
+        delete this._collection[sourceKey];
     }
-});
+};
 
-var ListStore = can.Construct({}, {
-    init: function () {
-        this._store = [];
+var ListCollection = {
+    _makeStore: function () {
+        return new RedBlackTree(function (a, b) {
+            a = a.sourceKey.isComputed ? a.sourceKey(): a.sourceKey;
+            b = b.sourceKey.isComputed ? b.sourceKey(): b.sourceKey;
+            return a === b ? 0 : a < b ? -1 : 1; // ASC
+        });
     },
-    add: function (computes) {
-        var i = computes.sourceKey();
-        var length;
+    _subscribe: function () {
+        var self = this;
 
-        // Save the computes at the same index as they are in their
-        // source list
-        this._store.splice(i, 0, computes);
+        // Index items added to the source later
+        this._source.bind('add', function (ev, newItems, offset) {
+            can.each(newItems, function (item, i) {
+                var sourceIndex = offset + i;
+                self._addItem(sourceIndex);
+            });
+        });
 
-        this._propagateIndexChange(i + 1);
+        // Unbind/remove items from the collection as they're removed from
+        // the source
+        this._source.bind('remove', function (ev, removedItems, offset) {
+            can.each(removedItems, function (item, i) {
+                var sourceIndex = offset + i;
+                self._removeItem(sourceIndex);
+            });
+        });
     },
-    remove: function (computes) {
-        var i = computes.sourceKey();
-        var length;
+    _getCompute: function (sourceIndex) {
 
-        this._store.splice(i, 1);
+        // Find the computes using an object that the comparator can
+        // evaluate against each item
+        var computes = this._collection.find({
+            sourceKey: sourceIndex
+        });
 
-        this._propagateIndexChange(i);
+        return computes;
     },
-    _propagateIndexChange: function (i) {
+    __addItem: function (sourceIndex) {
+        var computes = this._bindToKeyValueChange(sourceIndex);
 
-        // Cache the length
-        length = this._store.length;
+        this._collection.insert(computes);
 
-        // Batch
-        can.batch.start();
+        // Update the rest of the list items
+        this._propagate(sourceIndex + 1, 1);
+    },
+    __removeItem: function (sourceIndex) {
+        // Remove it from the collection
+        this._collection.remove({
+            sourceKey: sourceIndex
+        });
 
-        // Update the remaining sourceKeys manually, as the index' would
-        // in a native list
-        for (i; i < length; i++) {
-            this._store[i].sourceKey(i);
+        // Update the rest of the list items
+        this._propagate(sourceIndex + 1, -1);
+    },
+    _propagate: function (sourceIndex, offset) {
+
+        var iter = this._collection.findIter({
+            sourceKey: sourceIndex
+        });
+
+        if (iter === null) {
+            return;
         }
 
-        can.batch.stop();
+        iter.rest(function (item) {
+            item.sourceKey(item.sourceKey() + offset);
+        });
     }
-});
+};
 
 var ComputeCollection = can.ComputeCollection = Map.extend({}, {
     _bindsetup: function () {
         var self = this;
-        var addItem = function (key) {
-            self._computes.add(self._bind(key));
-        };
-        var removeItem = function (key) {
-            var computes = self._computes._store[key];
 
-            // Set all of the computes to undefined, notifying any listeners
-            // that the key/value is no more
-            computes.activated(false);
+        // Mixin the methods used to store/manage the metadata associated
+        // with each item in the map/list
+        if (this._source instanceof List) {
+            can.extend(this, ListCollection);
+        } else if (this._source instanceof Map) {
+            can.extend(this, MapCollection);
+        }
 
-            // Remove it from the store
-            self._computes.remove(computes);
-
-            // Stop firing events
-            computes.sourceKey.unbind();
-            computes.key.unbind();
-            computes.value.unbind();
-        };
+        // Initialize the collection
+        this._collection = this._makeStore();
 
         // Index the current set of items
-        this._source.each(function (item, key) {
-            addItem(key);
+        this._source.each(function (item, attr) {
+            self._addItem(attr);
         });
 
-        // TODO: Submit PR to emit add/remove events on can.Map's
-        // TODO: Find an elegant way to abstract the differences in map/list
-        // events
-        if (this._source instanceof List) {
-            // Index items added to the source later
-            this._source.bind('add', function (ev, newItems, offset) {
-                can.each(newItems, function (item, i) {
-                    addItem(offset + i);
-                });
-            });
-
-            // Unbind/remove items from the store as they're removed from
-            // the source
-            this._source.bind('remove', function (ev, removedItems, offset) {
-                can.each(removedItems, function (item, i) {
-                    var sourceKey = offset + i;
-                    removeItem(sourceKey);
-                });
-            });
-        } else {
-            this._source.bind('change', function (ev, attr, how, newVal, oldVal) {
-                if (how === 'add') {
-                    addItem(attr);
-                } else if (how === 'remove') {
-                    removeItem(attr);
-                }
-            });
-        }
+        // Handle the adding/removing of items
+        this._subscribe();
     },
-    _bind: function (key) {
+    _bindToKeyValueChange: function (sourceKey) {
         var self = this;
-        var computes = this._index(key);
+        var computes = this._computeMeta(sourceKey);
 
         computes.value.bind('change', function (ev, newVal, oldVal) {
             can.batch.trigger(self, 'value', [newVal, oldVal, computes]);
@@ -126,57 +143,94 @@ var ComputeCollection = can.ComputeCollection = Map.extend({}, {
 
         return computes;
     },
-    _index: function (key) {
+    _computeMeta: function (sourceKey) {
 
-        // A flag that enables/disables the key/value compute
-        var activated = can.compute(false);
-
-        // The key/index of the item in the source map/list
-        var sourceKey = can.compute(key);
+        // Save reference to the returned computes object so that it can
+        // be retrieved from the tree
+        var computes = {};
 
         var makeComputeFn = function (fnKey) {
             return function () {
+                var self = this;
                 var fn = this.attr(fnKey);
                 var i, item;
 
-
                 // Changes from undefined to true once these computes are
                 // bound to
-                if (! activated()) { return; };
+                if (! computes.activated()) { return; }
 
                 // Bind to as few properties as possible until we have a
                 // function to evaluate them
                 if (! fn) { return; }
 
-                i = sourceKey();
-                item = this._source.attr(i);
+                // Find the index using an object that the comparator can
+                // evaluate against each item
+                i = computes.sourceKey();
+
+                // Get the value from the source list/map
+                item = self._source.attr(computes.sourceKey());
+
+                // Pass functions so that bindings aren't created unless
+                // they're actually needed. We'll be updating .attr
+                // and .sortKey a lot (in the case of lists), so we don't
+                // want unnecessary executions of these computes if we can
+                // help it.
                 return fn(item, i);
             };
         };
 
+        // A flag that enables/disables the key/value compute
+        computes.activated = can.compute(false);
+
+        // The key that's used to read the source value of this item from
+        // the source map/list
+        computes.sourceKey = can.compute(sourceKey);
+
+        // A compute bound to the item's key
+        computes.key = can.compute(makeComputeFn('keyFn'), this);
+
         // A compute bound to the item's value
         // TODO: Find out if you can update a compute's function. This way
         // no computes are created unless you provide a valueFn.
-        var computedValue = can.compute(makeComputeFn('valueFn'), this);
+        computes.value = can.compute(makeComputeFn('valueFn'), this);
 
-        // A compute bound to the item's key
-        var computedKey = can.compute(makeComputeFn('keyFn'), this);
+        return computes;
+    },
+    _addItem: function () {
 
-        return {
-            activated: activated,
-            sourceKey: sourceKey,
-            key: computedKey,
-            value: computedValue
-        };
+        // Update the number of items in the collection
+        this.length++;
+
+        return this.__addItem.apply(this, arguments);
+    },
+    _removeItem: function (attr) {
+
+        var compute = this._getCompute(attr);
+
+        // Update the number of items in the collection
+        this.length--;
+
+        // Set all of the computes to undefined, notifying any listeners
+        // that the key/value is no more
+        compute.activated(false);
+
+        // Remove the item from the meta collection
+        this.__removeItem(attr);
+
+        // Stop firing events
+        compute.sourceKey.unbind();
+        compute.key.unbind();
+        compute.value.unbind();
     },
     setup: function (source) {
+
+        // Save a reference to the original map/list
         this._source = source;
 
-        // Abstract the store manipulation methods into their own API
-        this._computes = this._source instanceof List ?
-            new ListStore() :
-            new MapStore();
+        // A counter of the number of properties stored in the collection
+        this.length = 0;
 
+        // Continue
         return Map.prototype.setup.call(this);
     }
 });

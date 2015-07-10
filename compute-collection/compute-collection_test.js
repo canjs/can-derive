@@ -111,21 +111,17 @@ can.each([
         var source = sample.source();
         var collection = new can.ComputeCollection(source);
 
-        var count = function () {
-            var length = 0;
-
-            can.each(collection._computes._store, function (item, i) {
-                length++;
-            });
-
-            return length;
-        }
-
         collection.attr('keyFn', function (item, i) { return i; });
         collection.bind('key', can.noop);
 
-
-        var i = count();
+        // Count up the items in a map/list
+        var i = (function () {
+            var count = 0;
+            can.each(source, function () {
+                count++;
+            });
+            return count;
+        })();
 
         // Account for index difference in map/list
         i = (! source instanceof List ? i : i - 1);
@@ -135,9 +131,7 @@ can.each([
             i--;
         }
 
-        var length = count();
-
-        equal(length, 0, 'There are no items in the store');
+        equal(collection.length, 0, 'There are no items in the store');
     });
 
     // TODO: Test that removing an item unbinds its computes
