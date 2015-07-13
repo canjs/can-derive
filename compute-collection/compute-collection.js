@@ -23,10 +23,8 @@ var MapCollection = {
     _getCompute: function (sourceKey) {
         return this._collection[sourceKey];
     },
-    __addItem: function (sourceKey) {
-        var computes = this._bindToKeyValueChange(sourceKey);
-
-        this._collection[sourceKey] = computes;
+    __addItem: function (computes) {
+        this._collection[computes.sourceKey()] = computes;
     },
     __removeItem: function (sourceKey) {
         delete this._collection[sourceKey];
@@ -43,6 +41,30 @@ var ListCollection = {
     },
     _subscribe: function () {
         var self = this;
+
+        // Update sourceValue when list.attr([index], [value]) is called
+        var ___set = this._source.___set;
+        this._source.___set = function (attr, value) {
+
+            // Cast as Number
+            attr = +attr;
+
+            // If this value doesn't already exist on the object
+            // this is likely a "set" and we don't want to handle it here
+            if (this[attr] === undefined) {
+                return;
+            }
+
+            var computes = self._collection.find({
+                sourceKey: attr
+            });
+            // Update the sourceValue instead of executing the key/value
+            // function whenever value changes at this._source.attr(sourceKey);
+            computes.sourceValue(value);
+
+            // Don't interfere with the soure list's set
+            return ___set.apply(this, arguments);
+        };
 
         // Index items added to the source later
         this._source.bind('add', function (ev, newItems, offset) {
@@ -71,27 +93,29 @@ var ListCollection = {
 
         return computes;
     },
-    __addItem: function (sourceIndex) {
-        var computes = this._bindToKeyValueChange(sourceIndex);
+    __addItem: function (computes) {
+        // Update the rest of the list items
+        this._propagate(computes.sourceKey(), 1);
 
         this._collection.insert(computes);
-
-        // Update the rest of the list items
-        this._propagate(sourceIndex + 1, 1);
     },
     __removeItem: function (sourceIndex) {
-        // Remove it from the collection
-        this._collection.remove({
+
+        // Get a reference to the computes item
+        var computes = this._collection.find({
             sourceKey: sourceIndex
         });
+
+        // Remove this computes item from the collection
+        this._collection.remove(computes);
 
         // Update the rest of the list items
         this._propagate(sourceIndex + 1, -1);
     },
-    _propagate: function (sourceIndex, offset) {
+    _propagate: function (startingSourceIndex, offset) {
 
         var iter = this._collection.findIter({
-            sourceKey: sourceIndex
+            sourceKey: startingSourceIndex
         });
 
         if (iter === null) {
@@ -168,13 +192,14 @@ var ComputeCollection = can.ComputeCollection = Map.extend({}, {
                 i = computes.sourceKey();
 
                 // Get the value from the source list/map
-                item = self._source.attr(computes.sourceKey());
+                item = computes.sourceValue();
 
                 // Pass functions so that bindings aren't created unless
                 // they're actually needed. We'll be updating .attr
                 // and .sortKey a lot (in the case of lists), so we don't
                 // want unnecessary executions of these computes if we can
                 // help it.
+
                 return fn(item, i);
             };
         };
@@ -182,6 +207,9 @@ var ComputeCollection = can.ComputeCollection = Map.extend({}, {
         // A flag that enables/disables the key/value compute
         computes.activated = can.compute(false);
 
+        // A compute that holds a reference to the source map/lists value
+        // NOTE: This value is updated by the map/lists _subscribe function
+        computes.sourceValue = can.compute(this._source.attr(sourceKey));
         // The key that's used to read the source value of this item from
         // the source map/list
         computes.sourceKey = can.compute(sourceKey);
@@ -196,12 +224,13 @@ var ComputeCollection = can.ComputeCollection = Map.extend({}, {
 
         return computes;
     },
-    _addItem: function () {
+    _addItem: function (sourceKey) {
+        var computes = this._bindToKeyValueChange(sourceKey);
 
         // Update the number of items in the collection
         this.length++;
 
-        return this.__addItem.apply(this, arguments);
+        return this.__addItem(computes);
     },
     _removeItem: function (attr) {
 
@@ -218,9 +247,11 @@ var ComputeCollection = can.ComputeCollection = Map.extend({}, {
         this.__removeItem(attr);
 
         // Stop firing events
-        compute.sourceKey.unbind();
-        compute.key.unbind();
-        compute.value.unbind();
+        // TODO: Find a way to unbind without interrupting the handlers
+        // compute.sourceValue.unbind('change');
+        // compute.sourceKey.unbind('change');
+        // compute.key.unbind('change');
+        // compute.value.unbind('change');
     },
     setup: function (source) {
 
