@@ -32,73 +32,39 @@ List.prototype.filter = function (predicate) {
 
             // Insert
             if (insertIndex >= 0) {
-                derived.splice(insertIndex, 0, computes);
+                derived.splice(insertIndex, 0, computes.value());
             }
         } else {
             removeIndex = tree.remove(computes);
 
+            // Remove
             if (removeIndex >= 0) {
                 derived.splice(removeIndex, 1);
             }
         }
     });
 
-    // Since the keys of a filtered map are sometimes dependent on the values,
-    // derive those first.
-    computedCollection.attr('valueFn', function () { return arguments[0]; });
+    computedCollection.bind('value',
+        function (ev, newValue, oldValue, computes) {
+            var changedIndex = tree.findIndex(computes);
+
+            if (changedIndex < 0) {
+                return;
+            }
+
+            if (derived.attr(changedIndex) === oldValue) {
+                derived.attr(changedIndex, newValue);
+            }
+        });
+
+    // Use the existing values
+    computedCollection.attr('valueFn', function (value) {
+        return value;
+    });
 
     // Return true/false to determine which keys are included/excluded in the
     // derived map
     computedCollection.attr('keyFn', predicate);
-
-    return derived._filter();
-};
-
-// Move items based on sourceKey changes
-List.prototype._filter = function () {
-    var derived = new this.constructor();
-    var computedCollection = new ComputeCollection(this);
-
-    // For now, this is to check the intermediary derived computes in the test
-    derived._source = this;
-
-    // TODO: Bind directly to sourceIndex, since key acts as a proxy here
-    computedCollection.bind('key', function (ev, newVal, oldVal, computes) {
-        if (derived._isValidKey(oldVal) &&
-                derived.attr(oldVal) === computes.value()) {
-            console.log('Remove:', oldVal);
-            derived.splice(oldVal, 1);
-            console.log(derived.attr())
-        }
-
-        // If there's a valid key, and the item isn't already in the correct
-        // position (as would be the case with a splice), add it.
-        if (derived._isValidKey(newVal)
-            && derived.attr(newVal) !== computes.value()) {
-
-            console.log('Add:', newVal, '=', computes.value());
-            derived.splice(newVal, 0, computes.value());
-            console.log(derived.attr())
-        }
-    });
-
-    computedCollection.bind('value', function (ev, newVal, oldVal, computes) {
-        if (derived._isValidKey(computes.key())) {
-            console.log('Update:', computes.key(), '=', computes.value());
-            derived.attr(computes.key(), computes.value());
-            console.log(derived.attr())
-        }
-    });
-
-    computedCollection.attr('valueFn', function (computes, i) {
-        return computes.value();
-    });
-
-    computedCollection.attr('keyFn', function (computes, sourceIndex) {
-        // Even though ComputeCollection binds to sourceIndex, something has
-        // to be returned so that the compute fires "change" events
-        return sourceIndex;
-    });
 
     return derived;
 };
