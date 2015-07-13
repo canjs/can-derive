@@ -23,22 +23,42 @@ List.prototype.filter = function (predicate) {
         var insertIndex, removeIndex;
 
         // The "key" will either be true or false per the rules of the predicate
-        // so we only need to handle add/remove (not a change in index)
-        // TODO: Handle a change in index
         if (computes.key()) {
+            debugger;
+            // Test to see if a slot exists
+            insertIndex = tree.findIndex(computes);
 
-            // Get the index to insert at
+            // Make room
+            if (insertIndex >= 0) {
+                var iter = tree.findIter(computes);
+
+                if (iter === null) {
+                    return;
+                }
+
+                iter.rest(function (item) {
+                    item.sourceKey(item.sourceKey() + 1);
+                });
+
+
+            }
+
+            // Insert into empty slot
             insertIndex = tree.insert(computes);
 
             // Insert
             if (insertIndex >= 0) {
+                console.log('Add:', insertIndex, computes.value());
                 derived.splice(insertIndex, 0, computes.value());
             }
         } else {
+            debugger;
             removeIndex = tree.remove(computes);
 
             // Remove
             if (removeIndex >= 0) {
+
+                console.log('Remove:', removeIndex, computes.value());
                 derived.splice(removeIndex, 1);
             }
         }
@@ -46,15 +66,22 @@ List.prototype.filter = function (predicate) {
 
     computedCollection.bind('value',
         function (ev, newValue, oldValue, computes) {
+
+            // Don't handle "add" or "remove" here
+            if (newValue === undefined || oldValue === undefined) {
+                return;
+            }
+
             var changedIndex = tree.findIndex(computes);
 
             if (changedIndex < 0) {
                 return;
             }
 
-            if (derived.attr(changedIndex) === oldValue) {
-                derived.attr(changedIndex, newValue);
-            }
+
+            console.log('Set:', changedIndex, computes.value());
+            derived.attr(changedIndex, newValue);
+
         });
 
     // Use the existing values
@@ -62,9 +89,11 @@ List.prototype.filter = function (predicate) {
         return value;
     });
 
+
     // Return true/false to determine which keys are included/excluded in the
     // derived map
     computedCollection.attr('keyFn', predicate);
+
 
     return derived;
 };
