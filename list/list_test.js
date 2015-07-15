@@ -6,15 +6,28 @@ QUnit.module('can/list', {
     setup: function () {}
 });
 
+var letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+var alphabet = letters.split('');
+alphabet.splice(2, 0, 0);
+alphabet.splice(5, 0, 0);
+alphabet.splice(12, 0, 0);
+alphabet.splice(16, 0, 0);
+alphabet.splice(22, 0, 0);
+alphabet.splice(27, 0, 0);
+
+window.log = function (context) {
+    context = context || tree;
+    console.log(context.print(function (node) { return node.data.sourceIndex + ':' + node.data.value } ));
+};
+
 var equalValues = function (list, expectedValues) {
     var match = true;
 
     list.each(function (item, index) {
         if (item !== expectedValues[index]) {
-            equal(expectedValues[index], item)
+            deepEqual(expectedValues[index], item);
             match = false;
         }
-
         return match; // Stop iterating
     });
 
@@ -27,71 +40,79 @@ test('Has filter method', function () {
 
 test('.filter() derives the correct initial values', function () {
 
-    var source = new can.List([undefined,'a','b','c']);
+    var source = new can.List(alphabet);
 
     var derived = source.filter(function (value, key) {
         return value ? true : false;
     });
 
-    ok(equalValues(derived, ['a','b','c']), 'Initial values are correct');
+    ok(equalValues(derived, letters.split('')), 'Initial values are correct');
 });
 
 test('.filter() applies value change', function () {
 
-    var source = new can.List([undefined,'a','b','c']);
-
-    var derived = source.filter(function (value, key) {
+    var source = new can.List(alphabet);
+    var filterFn = function (value, key) {
         return value ? true : false;
-    });
+    };
+    var clonedAlphabet = alphabet.slice().filter(filterFn);
+    var derived = source.filter(filterFn);
 
-    // Change values
-    source.attr(1, 'b');
-    ok(equalValues(derived, ['b','b','c']), 'Set derived');
+    source.attr(4, 'DD'); // D > DD
+    clonedAlphabet[3] = 'DD'; // Update static list
+    ok(equalValues(derived, clonedAlphabet), 'Set derived'); // Compare
 
-    source.attr(2, 'c');
-    ok(equalValues(derived, ['b','c','c']), 'Set derived');
+    source.attr(10, 'II'); // I > II
+    clonedAlphabet[8] = 'II';
+    ok(equalValues(derived, clonedAlphabet), 'Set derived');
 
-    source.attr(3, 'a');
-    ok(equalValues(derived, ['b','c','a']), 'Set derived');
+    source.attr(29, 'XX'); // X > XX
+    clonedAlphabet[23] = 'XX';
+    ok(equalValues(derived, clonedAlphabet), 'Set derived');
 });
 
 test('.filter() adds new items', function () {
 
-    var source = new can.List(['u',undefined,'a']);
-
-    var derived = source.filter(function (value, key) {
+    var source = new can.List(alphabet);
+    var filterFn = function (value, key) {
         return value ? true : false;
-    });
+    };
+    var clonedAlphabet = alphabet.slice().filter(filterFn);
+    var derived = source.filter(filterFn);
 
     // Add values
-    source.unshift('f');
-    ok(equalValues(derived, ['f','u','a']), 'Item added via .unshift()');
+    source.unshift('Aey');
+    clonedAlphabet.unshift('Aey');
+    ok(equalValues(derived, clonedAlphabet), 'Item added via .unshift()');
 
-    source.splice(2, 0, 'b');
-    ok(equalValues(derived, ['f','u','b','a']), 'Item added via .splice()');
+    source.splice(20, 0, 'Ohh');
+    clonedAlphabet.splice(16, 0, 'Ohh');
+    ok(equalValues(derived, clonedAlphabet), 'Item added via .splice()');
 
-    source.push('r');
-    ok(equalValues(derived, ['f','u','b','a','r']), 'Item added via .push()');
+    source.push('Zee');
+    clonedAlphabet.push('Zee');
+    ok(equalValues(derived, clonedAlphabet), 'Item added via .push()');
 });
 
 test('.filter() removes existing items', function () {
 
-    var source = new can.List(['r','u','b','b','e','r','s']);
-
-    var derived = source.filter(function (value, key) {
+    var source = new can.List(alphabet);
+    var filterFn = function (value, key) {
         return value ? true : false;
-    });
+    };
+    var clonedAlphabet = alphabet.slice().filter(filterFn);
+    var derived = source.filter(filterFn);
 
     // Remove values
     source.shift();
-    ok(equalValues(derived, ['u','b','b','e','r','s']),
-        'Item removed via .shift()');
+    clonedAlphabet.shift();
+    ok(equalValues(derived, clonedAlphabet), 'Item removed via .shift()');
 
-    source.splice(2, 1);
-    ok(equalValues(derived, ['u','b','e','r','s']),
-        'Item removed via .splice()');
+    source.splice(10, 1);
+    clonedAlphabet.splice(8, 1);
+    ok(equalValues(derived, clonedAlphabet), 'Item removed via .splice()');
 
     source.pop();
-    ok(equalValues(derived, ['u','b','e','r']),
-        'Item removed via .pop()');
+    clonedAlphabet.pop();
+    ok(equalValues(derived, clonedAlphabet), 'Item removed via .pop()');
 });

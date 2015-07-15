@@ -7,95 +7,154 @@ var RedBlackTree = require('can-redblacktree').RBTree;
 // the predicate
 List.prototype.filter = function (predicate) {
 
-    // Derive a list of computes sorted by sourceKey
-    var derived = new this.constructor();
-    var computedCollection = new ComputeCollection(this);
     var tree = new RedBlackTree(function (a, b) {
-        a = a.sourceKey();
-        b = b.sourceKey();
+        var result;
+
+        a = a.sourceIndex;
+        b = b.sourceIndex;
+
         return a === b ? 0 : a < b ? -1 : 1; // Ascending
     });
+    var transactionId = 0;
+    var computes = [];
 
-    // NOTE: Bind to "key" because their value cannot naturally be `undefined`
-    // like a "value" can. In other words, don't exclude an item because it's
-    // "value" is `undefined`.
-    computedCollection.bind('key', function (ev, newKey, oldKey, computes) {
-        var insertIndex, removeIndex;
+    var insert = function (compute) {
 
-        // The "key" will either be true or false per the rules of the predicate
-        if (computes.key()) {
-            debugger;
-            // Test to see if a slot exists
-            insertIndex = tree.findIndex(computes);
-
-            // Make room
-            if (insertIndex >= 0) {
-                var iter = tree.findIter(computes);
-
-                if (iter === null) {
-                    return;
-                }
-
-                iter.rest(function (item) {
-                    item.sourceKey(item.sourceKey() + 1);
-                });
-
-
-            }
-
-            // Insert into empty slot
-            insertIndex = tree.insert(computes);
-
-            // Insert
-            if (insertIndex >= 0) {
-                console.log('Add:', insertIndex, computes.value());
-                derived.splice(insertIndex, 0, computes.value());
-            }
-        } else {
-            debugger;
-            removeIndex = tree.remove(computes);
-
-            // Remove
-            if (removeIndex >= 0) {
-
-                console.log('Remove:', removeIndex, computes.value());
-                derived.splice(removeIndex, 1);
-            }
-        }
-    });
-
-    computedCollection.bind('value',
-        function (ev, newValue, oldValue, computes) {
-
-            // Don't handle "add" or "remove" here
-            if (newValue === undefined || oldValue === undefined) {
-                return;
-            }
-
-            var changedIndex = tree.findIndex(computes);
-
-            if (changedIndex < 0) {
-                return;
-            }
-
-
-            console.log('Set:', changedIndex, computes.value());
-            derived.attr(changedIndex, newValue);
-
+        var itemExists = tree.find({
+            sourceIndex: compute.sourceIndex()
         });
 
-    // Use the existing values
-    computedCollection.attr('valueFn', function (value) {
-        return value;
+        var iterator;
+
+        // Handle .splice()
+        if (itemExists) {
+            iterator = tree.findIter({
+                sourceIndex: compute.sourceIndex()
+            });
+
+            iterator.rest(function (data) {
+                data.sourceIndex += 1;
+            });
+        }
+
+        var data = {
+            sourceIndex: compute.sourceIndex(),
+            value: compute.value()
+        };
+
+        tree.insert(data);
+
+        compute.value.bind('change', function (ev, newVal, oldVal) {
+            data.value = newVal;
+        });
+    };
+
+    var add = function (item, i) {
+
+        var compute = {};
+        compute.initialized = can.compute(false);
+        compute.sourceIndex = can.compute(i);
+        compute.value = can.compute(item);
+        compute.include = can.compute(function () {
+            if (! compute.initialized()) { return undefined; }
+            return predicate(compute.value(), compute.sourceIndex());
+        });
+
+        computes[i] = compute;
+
+        compute.include.bind('change', function (ev, newVal, oldVal) {
+            if (! oldVal && newVal) {
+                insert(compute);
+            }
+
+            // TODO: Handle a predicate change from true > false
+            if (oldVal && ! newVal) {
+                extract(item);
+            }
+        });
+
+        // Trigger the binding
+        compute.initialized(true);
+
+        for (i++; i < computes.length; i++) {
+            computes[i].sourceIndex(i);
+        }
+    };
+
+    // Add initial items
+    this.each(add);
+
+    // Add future items
+    this.bind('add', function (ev, items, offset) {
+        can.each(items, function (item, i) {
+            add(item, offset + i);
+        });
     });
 
+    // Remove future items
+    this.bind('remove', function (ev, items, offset) {
+        var iterator, lastRemovedIndex;
 
-    // Return true/false to determine which keys are included/excluded in the
-    // derived map
-    computedCollection.attr('keyFn', predicate);
+        can.each(items, function (item, i) {
+            var index = offset + i;
 
+            var result = tree.remove({
+                sourceIndex: index
+            });
 
-    return derived;
+            computes.splice(index, 1);
+
+            lastRemovedIndex = index;
+        });
+
+        iterator = tree.lowerBound({
+            sourceIndex: lastRemovedIndex + 1
+        });
+
+        if (! iterator) {
+            return;
+        }
+
+        iterator.rest(function (data) {
+            data.sourceIndex += -(items.length);
+        });
+    });
+
+    // Update values on set
+    var ___set = this.___set;
+    this.___set = function (key, value) {
+        computes[key].value(value);
+        return ___set.apply(this, arguments);
+    };
+
+    // Read at known index
+    tree.attr = function (index) {
+
+        if (index === undefined) {
+            var items = [];
+            this.each(function (item) {
+                items.push(item);
+            });
+            return items;
+        }
+
+        var data = tree.findAtIndex(index);
+
+        return data ? data.value : undefined; // -1 === undefined
+    };
+
+    // Make each return item instead of data
+    tree._each = tree.each;
+    tree.each = function (callback) {
+        var i = 0;
+        tree._each.call(this, function (data) {
+            var result = callback(data.value, i);
+            i++;
+            return result;
+        });
+    };
+
+    return tree;
 };
 
 module.exports = List;
