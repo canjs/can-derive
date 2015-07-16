@@ -1,84 +1,39 @@
 var Map = require('can/map/map');
 var List = require('can/list/list');
 var ComputeCollection = require('../compute-collection/compute-collection');
-var RedBlackTree = require('can-redblacktree').RBTree;
+var RedBlackTree = require('can-redblacktree');
 
 // Handle the adding/removing of items to the derived list based on
 // the predicate
-List.prototype.filter = function (predicate) {
+List.prototype.derive = function (predicate) {
 
+    // Use a tree so that items are sorted by the source list's
+    // index in O(log(n)) time
     var tree = new RedBlackTree(function (a, b) {
-        var result;
-
-        a = a.sourceIndex;
-        b = b.sourceIndex;
-
-        return a === b ? 0 : a < b ? -1 : 1; // Ascending
+        a = a.index.isComputed ? a.index() : a.index;
+        b = b.index.isComputed ? b.index() : b.index;
+        return a === b ? 0 : a < b ? -1 : 1; // ASC
     });
-    var transactionId = 0;
-    var computes = [];
 
-    var insert = function (compute) {
+    var add = function (item, index) {
 
-        var itemExists = tree.find({
-            sourceIndex: compute.sourceIndex()
-        });
+        // Store information in a way that changes can be bound to
+        var computes = {};
+        computes.index = can.compute(index);
+        computes.value = can.compute(item);
 
-        var iterator;
+        // Ghetto splice (part 1 of 3)
+        var iterator = tree.findIter(computes);
 
-        // Handle .splice()
-        if (itemExists) {
-            iterator = tree.findIter({
-                sourceIndex: compute.sourceIndex()
-            });
-
+        // Ghetto splice (part 2 of 3)
+        if (iterator !== null) {
             iterator.rest(function (data) {
-                data.sourceIndex += 1;
+                data.index(data.index() + 1);
             });
         }
 
-        var data = {
-            sourceIndex: compute.sourceIndex(),
-            value: compute.value()
-        };
-
-        tree.insert(data);
-
-        compute.value.bind('change', function (ev, newVal, oldVal) {
-            data.value = newVal;
-        });
-    };
-
-    var add = function (item, i) {
-
-        var compute = {};
-        compute.initialized = can.compute(false);
-        compute.sourceIndex = can.compute(i);
-        compute.value = can.compute(item);
-        compute.include = can.compute(function () {
-            if (! compute.initialized()) { return undefined; }
-            return predicate(compute.value(), compute.sourceIndex());
-        });
-
-        computes[i] = compute;
-
-        compute.include.bind('change', function (ev, newVal, oldVal) {
-            if (! oldVal && newVal) {
-                insert(compute);
-            }
-
-            // TODO: Handle a predicate change from true > false
-            if (oldVal && ! newVal) {
-                extract(item);
-            }
-        });
-
-        // Trigger the binding
-        compute.initialized(true);
-
-        for (i++; i < computes.length; i++) {
-            computes[i].sourceIndex(i);
-        }
+        // Ghetto splice (part 3 of 3)
+        tree.insert(computes);
     };
 
     // Add initial items
@@ -95,37 +50,117 @@ List.prototype.filter = function (predicate) {
     this.bind('remove', function (ev, items, offset) {
         var iterator, lastRemovedIndex;
 
+        // Remove each item
         can.each(items, function (item, i) {
             var index = offset + i;
 
             var result = tree.remove({
-                sourceIndex: index
+                index: index
             });
-
-            computes.splice(index, 1);
 
             lastRemovedIndex = index;
         });
 
+        // Find the item after the remove(s)
         iterator = tree.lowerBound({
-            sourceIndex: lastRemovedIndex + 1
+            index: lastRemovedIndex + 1
         });
 
-        if (! iterator) {
-            return;
+        // Decrement the remaining items' index by the number
+        // of items removed
+        if (iterator !== null) {
+            iterator.rest(function (computes) {
+                computes.index(computes.index() - items.length);
+            });
+        }
+    });
+
+    // Handle future changes in value to existing items
+    var ___set = this.___set;
+    this.___set = function (index, value) {
+
+        // Cast as <int>
+        index = +index;
+
+        // Get a reference to the "computes" object
+        var computes = tree.find({
+            index: index
+        });
+
+        if (computes) {
+            // Update the value, thus triggering a `change` event
+            computes.value(value);
         }
 
-        iterator.rest(function (data) {
-            data.sourceIndex += -(items.length);
+        // Continue the `set` on the source list
+        return ___set.apply(this, arguments);
+    };
+
+    return tree;
+};
+
+
+RedBlackTree.prototype.filter = function (predicate) {
+
+    var tree = new RedBlackTree(function (a, b) {
+        a = a.index.isComputed ? a.index() : a.index;
+        b = b.index.isComputed ? b.index() : b.index;
+        return a === b ? 0 : a < b ? -1 : 1; // ASC
+    });
+
+    // Bind and insert/remove
+    var register = function (computes) {
+
+        // Default to false
+        var initialized = can.compute(false);
+
+        // Determine whether to include or not
+        var include = can.compute(function () {
+
+            // Ensure first change event's "oldVal" is `false`
+            if (! initialized()) { return false; }
+
+            return predicate(computes.value(), computes.index());
+        });
+
+        // Add/remove based predicate change
+        include.bind('change', function (ev, newVal, oldVal) {
+
+            if (newVal) {
+                // Don't worry about splice, because the index'
+                // are already managed by .derive()
+                tree.insert(computes);
+            } else {
+                tree.remove(computes);
+            }
+        });
+
+        // Trigger an "include" `change` event
+        initialized(true);
+    };
+
+    // Add initial items
+    this.each(function (item, i) {
+        register(item, i);
+    });
+
+    // Add future items
+    this.bind('add', function (ev, items, offset) {
+        can.each(items, function (item, i) {
+            register(item, offset + i);
         });
     });
 
-    // Update values on set
-    var ___set = this.___set;
-    this.___set = function (key, value) {
-        computes[key].value(value);
-        return ___set.apply(this, arguments);
-    };
+    // Remove items when removed from the source list
+    this.bind('remove', function (ev, items, offset) {
+        can.each(items, function (item, i) {
+            var index = offset + i;
+
+            tree.remove({
+                index: index
+            });
+        });
+    });
 
     // Read at known index
     tree.attr = function (index) {
@@ -140,7 +175,8 @@ List.prototype.filter = function (predicate) {
 
         var data = tree.findAtIndex(index);
 
-        return data ? data.value : undefined; // -1 === undefined
+        // -1 === undefined
+        return data !== -1  ? data.value() : undefined;
     };
 
     // Make each return item instead of data
@@ -148,7 +184,7 @@ List.prototype.filter = function (predicate) {
     tree.each = function (callback) {
         var i = 0;
         tree._each.call(this, function (data) {
-            var result = callback(data.value, i);
+            var result = callback(data.value(), i);
             i++;
             return result;
         });

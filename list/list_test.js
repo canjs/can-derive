@@ -15,17 +15,12 @@ alphabet.splice(16, 0, 0);
 alphabet.splice(22, 0, 0);
 alphabet.splice(27, 0, 0);
 
-window.log = function (context) {
-    context = context || tree;
-    console.log(context.print(function (node) { return node.data.sourceIndex + ':' + node.data.value } ));
-};
-
 var equalValues = function (list, expectedValues) {
     var match = true;
 
     list.each(function (item, index) {
         if (item !== expectedValues[index]) {
-            deepEqual(expectedValues[index], item);
+            deepEqual(item, expectedValues[index]);
             match = false;
         }
         return match; // Stop iterating
@@ -42,7 +37,7 @@ test('.filter() derives the correct initial values', function () {
 
     var source = new can.List(alphabet);
 
-    var derived = source.filter(function (value, key) {
+    var derived = source.derive().filter(function (value, key) {
         return value ? true : false;
     });
 
@@ -56,7 +51,7 @@ test('.filter() applies value change', function () {
         return value ? true : false;
     };
     var clonedAlphabet = alphabet.slice().filter(filterFn);
-    var derived = source.filter(filterFn);
+    var derived = source.derive().filter(filterFn);
 
     source.attr(4, 'DD'); // D > DD
     clonedAlphabet[3] = 'DD'; // Update static list
@@ -78,7 +73,7 @@ test('.filter() adds new items', function () {
         return value ? true : false;
     };
     var clonedAlphabet = alphabet.slice().filter(filterFn);
-    var derived = source.filter(filterFn);
+    var derived = source.derive().filter(filterFn);
 
     // Add values
     source.unshift('Aey');
@@ -101,7 +96,7 @@ test('.filter() removes existing items', function () {
         return value ? true : false;
     };
     var clonedAlphabet = alphabet.slice().filter(filterFn);
-    var derived = source.filter(filterFn);
+    var derived = source.derive().filter(filterFn);
 
     // Remove values
     source.shift();
