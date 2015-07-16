@@ -26,7 +26,7 @@ List.prototype.filter = function (predicate) {
         if (computes.key()) {
 
             // Test to see if a slot exists
-            insertIndex = tree.findIndex(computes);
+            insertIndex = tree.getIndex(computes);
 
             // Make room
             if (insertIndex >= 0) {
@@ -69,7 +69,7 @@ List.prototype.filter = function (predicate) {
                 return;
             }
 
-            var changedIndex = tree.findIndex(computes);
+            var changedIndex = tree.getIndex(computes);
 
             if (changedIndex < 0) {
                 return;
