@@ -3,58 +3,122 @@ var List = require('can/list/list');
 var ComputeCollection = require('../compute-collection/compute-collection');
 var RedBlackTree = require('can-redblacktree');
 
-// Handle the adding/removing of items to the derived list based on
-// the predicate
-List.prototype.derive = function (predicate) {
+// Use a tree so that items are sorted by the source list's
+// index in O(log(n)) time
+var DerivedList = can.Construct.extend(RedBlackTree.prototype).extend({
 
-    // Use a tree so that items are sorted by the source list's
-    // index in O(log(n)) time
-    var tree = new RedBlackTree(function (a, b) {
+    _comparator: function (a, b) {
         a = a.index.isComputed ? a.index() : a.index;
         b = b.index.isComputed ? b.index() : b.index;
         return a === b ? 0 : a < b ? -1 : 1; // ASC
-    });
+    },
 
-    var add = function (item, index) {
+    init: function (sourceList) {
+
+        var self = this;
+        var args = can.makeArray(arguments);
+
+        // Save a reference to the list we're deriving
+        this._source = sourceList;
+
+        // Setup the tree
+        RedBlackTree.prototype.init.apply(this, args.slice(1));
+
+        // Make this list a reflection of the source list
+        this.syncItems();
+        this.syncValues();
+    },
+
+    syncItems: function () {
+
+        var self = this;
+
+        // Add initial items
+        this._source.each(function (item, index) {
+            self.addItem(item, index);
+        });
+
+        // Add future items
+        this._source.bind('add', function (ev, items, offset) {
+            self.addItems(items, offset);
+        });
+
+        // Remove future items
+        this._source.bind('remove', function (ev, items, offset) {
+            self.removeItems(items, offset);
+        });
+    },
+
+    syncValues: function () {
+
+        var self = this;
+
+        // Handle future changes in value to existing items
+        var ___set = this._source.___set;
+        this._source.___set = function (index, value) {
+
+            // Cast as <int>
+            index = +index;
+
+            // Get a reference to the "computes" object
+            var computes = self.find({
+                index: index
+            });
+
+            if (computes) {
+                // Update the value, thus triggering a `change` event
+                computes.value(value);
+            }
+
+            // Continue the `set` on the source list
+            return ___set.apply(this, arguments);
+        };
+    },
+
+    addItems: function (items, offset) {
+        var self = this;
+
+        can.each(items, function (item, i) {
+            self.addItem(item, offset + i);
+        });
+    },
+
+    addItem: function (item, index) {
 
         // Store information in a way that changes can be bound to
         var computes = {};
         computes.index = can.compute(index);
         computes.value = can.compute(item);
 
-        // Ghetto splice (part 1 of 3)
-        var iterator = tree.findIter(computes);
+        // RBTree splice (part 1 of 3)
+        // Highly specific to a derived list. A typical tree
+        // wouldn't know how to modify the remaining items to make room
+        // for this new item
+        var iterator = this.findIter(computes);
 
-        // Ghetto splice (part 2 of 3)
+        // RBTree splice (part 2 of 3)
+        // If there is an item in this location, increment the index of it
+        // and ever node after it by 1
         if (iterator !== null) {
             iterator.rest(function (data) {
                 data.index(data.index() + 1);
             });
         }
 
-        // Ghetto splice (part 3 of 3)
-        tree.insert(computes);
-    };
+        // RBTree splice (part 3 of 3)
+        // The collision has been resolved, insert
+        this.insert(computes);
+    },
 
-    // Add initial items
-    this.each(add);
-
-    // Add future items
-    this.bind('add', function (ev, items, offset) {
-        can.each(items, function (item, i) {
-            add(item, offset + i);
-        });
-    });
-
-    // Remove future items
-    this.bind('remove', function (ev, items, offset) {
+    removeItems: function (items, offset) {
+        var self = this;
         var iterator, lastRemovedIndex;
 
         // Remove each item
         can.each(items, function (item, i) {
             var index = offset + i;
 
-            var result = tree.remove({
+            var result = self.remove({
                 index: index
             });
 
@@ -62,7 +126,9 @@ List.prototype.derive = function (predicate) {
         });
 
         // Find the item after the remove(s)
-        iterator = tree.lowerBound({
+        // TODO: First remember, then comment on why `.lowerBound()` is
+        // used instead of `.find()`
+        iterator = this.lowerBound({
             index: lastRemovedIndex + 1
         });
 
@@ -73,43 +139,37 @@ List.prototype.derive = function (predicate) {
                 computes.index(computes.index() - items.length);
             });
         }
-    });
+    }
+});
 
-    // Handle future changes in value to existing items
-    var ___set = this.___set;
-    this.___set = function (index, value) {
+// Handle the adding/removing of items to the derived list based on
+// the predicate
+var FilteredList = DerivedList.extend({
 
-        // Cast as <int>
-        index = +index;
+    init: function (sourceList, predicate, predicateContext) {
 
-        // Get a reference to the "computes" object
-        var computes = tree.find({
-            index: index
-        });
-
-        if (computes) {
-            // Update the value, thus triggering a `change` event
-            computes.value(value);
+        // Overwrite the default predicate if one is provided
+        if (predicate) {
+            this.predicate = can.proxy(predicate, predicateContext);
         }
 
-        // Continue the `set` on the source list
-        return ___set.apply(this, arguments);
-    };
+        // Setup bindings, initialize the tree
+        DerivedList.prototype.init.call(this, sourceList);
+    },
 
-    return tree;
-};
+    // A filtered list's source list is a derived list (the derived list stores
+    // all of the potential values) who's values are computes that are kept
+    // in sync with the derived list's source list for us
+    syncValues: can.noop,
 
+    // By default, include all items
+    predicate: function () { return true; },
 
-RedBlackTree.prototype.filter = function (predicate) {
+    // Bind to index/value and insert/remove based on the predicate
+    // function provided by the user
+    addItem: function (computes) {
 
-    var tree = new RedBlackTree(function (a, b) {
-        a = a.index.isComputed ? a.index() : a.index;
-        b = b.index.isComputed ? b.index() : b.index;
-        return a === b ? 0 : a < b ? -1 : 1; // ASC
-    });
-
-    // Bind and insert/remove
-    var register = function (computes) {
+        var self = this;
 
         // Default to false
         var initialized = can.compute(false);
@@ -120,8 +180,10 @@ RedBlackTree.prototype.filter = function (predicate) {
             // Ensure first change event's "oldVal" is `false`
             if (! initialized()) { return false; }
 
-            return predicate(computes.value(), computes.index());
-        });
+            // Use the predicate function to determine if this
+            // item should be included in the overall list
+            return this.predicate(computes.value(), computes.index());
+        }, this);
 
         // Add/remove based predicate change
         include.bind('change', function (ev, newVal, oldVal) {
@@ -129,68 +191,55 @@ RedBlackTree.prototype.filter = function (predicate) {
             if (newVal) {
                 // Don't worry about splice, because the index'
                 // are already managed by .derive()
-                tree.insert(computes);
+                self.insert(computes);
             } else {
-                tree.remove(computes);
+                self.remove(computes);
             }
         });
 
         // Trigger an "include" `change` event
         initialized(true);
-    };
+    },
 
-    // Add initial items
-    this.each(function (item, i) {
-        register(item, i);
-    });
+    removeItems: function (items, offset) {
+        var self = this;
 
-    // Add future items
-    this.bind('add', function (ev, items, offset) {
-        can.each(items, function (item, i) {
-            register(item, offset + i);
-        });
-    });
-
-    // Remove items when removed from the source list
-    this.bind('remove', function (ev, items, offset) {
         can.each(items, function (item, i) {
             var index = offset + i;
 
-            tree.remove({
+            self.remove({
                 index: index
             });
         });
-    });
+    },
 
-    // Read at known index
-    tree.attr = function (index) {
+    // Abstract away the node data and return only the value compute's value
+    attr: function () {
 
-        if (index === undefined) {
-            var items = [];
-            this.each(function (item) {
-                items.push(item);
-            });
-            return items;
+        // Return the node data's "value" compute value
+        if (arguments.length === 1) {
+            var data = RedBlackTree.prototype.attr.apply(this, arguments);
+
+            // Node.data.value
+            return data && data.value();
         }
+    },
 
-        var data = tree.findAtIndex(index);
-
-        // -1 === undefined
-        return data !== -1  ? data.value() : undefined;
-    };
-
-    // Make each return item instead of data
-    tree._each = tree.each;
-    tree.each = function (callback) {
-        var i = 0;
-        tree._each.call(this, function (data) {
-            var result = callback(data.value(), i);
-            i++;
-            return result;
+    // Iterate over the value computes' values instead of the node's data
+    each: function (callback) {
+        RedBlackTree.prototype.each.call(this, function (data, i) {
+            return callback(data.value(), i);
         });
-    };
+    }
 
-    return tree;
+});
+
+
+List.prototype.filter = function (predicate, context, predicateContext) {
+    var derivedList = new DerivedList(this);
+    var filteredList =
+        new FilteredList(derivedList, predicate, predicateContext);
+    return filteredList;
 };
 
 module.exports = List;

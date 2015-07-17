@@ -37,7 +37,7 @@ test('.filter() derives the correct initial values', function () {
 
     var source = new can.List(alphabet);
 
-    var derived = source.derive().filter(function (value, key) {
+    var derived = source.filter(function (value, key) {
         return value ? true : false;
     });
 
@@ -51,7 +51,7 @@ test('.filter() applies value change', function () {
         return value ? true : false;
     };
     var clonedAlphabet = alphabet.slice().filter(filterFn);
-    var derived = source.derive().filter(filterFn);
+    var derived = source.filter(filterFn);
 
     source.attr(4, 'DD'); // D > DD
     clonedAlphabet[3] = 'DD'; // Update static list
@@ -73,7 +73,7 @@ test('.filter() adds new items', function () {
         return value ? true : false;
     };
     var clonedAlphabet = alphabet.slice().filter(filterFn);
-    var derived = source.derive().filter(filterFn);
+    var derived = source.filter(filterFn);
 
     // Add values
     source.unshift('Aey');
@@ -96,7 +96,7 @@ test('.filter() removes existing items', function () {
         return value ? true : false;
     };
     var clonedAlphabet = alphabet.slice().filter(filterFn);
-    var derived = source.derive().filter(filterFn);
+    var derived = source.filter(filterFn);
 
     // Remove values
     source.shift();
