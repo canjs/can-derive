@@ -1,11 +1,10 @@
 var Map = require('can/map/map');
 var List = require('can/list/list');
-var ComputeCollection = require('../compute-collection/compute-collection');
 var RedBlackTree = require('can-redblacktree');
 
 // Use a tree so that items are sorted by the source list's
 // index in O(log(n)) time
-var DerivedList = can.Construct.extend(RedBlackTree.prototype).extend({
+var DerivedList = RedBlackTree.extend({
 
     _comparator: function (a, b) {
         a = a.index.isComputed ? a.index() : a.index;
@@ -168,7 +167,6 @@ var FilteredList = DerivedList.extend({
     // Bind to index/value and insert/remove based on the predicate
     // function provided by the user
     addItem: function (computes) {
-
         var self = this;
 
         // Default to false
@@ -216,8 +214,13 @@ var FilteredList = DerivedList.extend({
     // Abstract away the node data and return only the value compute's value
     attr: function () {
 
+        if (arguments.length === 0) {
+            var list = RedBlackTree.prototype.attr.apply(this, arguments);
+
+            return list;
+
         // Return the node data's "value" compute value
-        if (arguments.length === 1) {
+        } else if (arguments.length === 1) {
             var data = RedBlackTree.prototype.attr.apply(this, arguments);
 
             // Node.data.value
@@ -230,7 +233,33 @@ var FilteredList = DerivedList.extend({
         RedBlackTree.prototype.each.call(this, function (data, i) {
             return callback(data.value(), i);
         });
-    }
+    },
+
+    insert: function (data) {
+        var insertIndex = this._parent.insert.apply(this, arguments);
+
+        if (insertIndex >= 0) {
+            this.dispatch('add', [[data.value()], insertIndex]);
+        }
+
+        return insertIndex;
+    },
+
+    // Trigger a "remove" event on successful insert
+    remove: function (data) {
+
+        // Get the node data before its removed from the tree
+        var nodeData = this.find(data);
+
+        // Remove, and get the index
+        var removeIndex = this._parent.remove.apply(this, arguments);
+
+        if (removeIndex >= 0) {
+            this.dispatch('remove', [[nodeData.value()], removeIndex]);
+        }
+
+        return removeIndex;
+    },
 
 });
 
