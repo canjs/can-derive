@@ -6,12 +6,6 @@ var RedBlackTree = require('can-redblacktree');
 // index in O(log(n)) time
 var DerivedList = RedBlackTree.extend({
 
-    _comparator: function (a, b) {
-        a = a.index.isComputed ? a.index() : a.index;
-        b = b.index.isComputed ? b.index() : b.index;
-        return a === b ? 0 : a < b ? -1 : 1; // ASC
-    },
-
     init: function (sourceList) {
 
         var self = this;
@@ -56,13 +50,11 @@ var DerivedList = RedBlackTree.extend({
         var ___set = this._source.___set;
         this._source.___set = function (index, value) {
 
-            // Cast as <int>
+            // Cast as a number
             index = +index;
 
             // Get a reference to the "computes" object
-            var computes = self.find({
-                index: index
-            });
+            var computes = self.get(index).data;
 
             if (computes) {
                 // Update the value, thus triggering a `change` event
@@ -89,24 +81,12 @@ var DerivedList = RedBlackTree.extend({
         computes.index = can.compute(index);
         computes.value = can.compute(item);
 
-        // RBTree splice (part 1 of 3)
-        // Highly specific to a derived list. A typical tree
-        // wouldn't know how to modify the remaining items to make room
-        // for this new item
-        var iterator = this.findIter(computes);
-
-        // RBTree splice (part 2 of 3)
-        // If there is an item in this location, increment the index of it
-        // and ever node after it by 1
-        if (iterator !== null) {
-            iterator.rest(function (data) {
-                data.index(data.index() + 1);
-            });
-        }
-
-        // RBTree splice (part 3 of 3)
-        // The collision has been resolved, insert
-        this.insert(computes);
+        // Don't dispatch the resulting "add" event until a reference
+        // to the node has been saved to the `computes` object
+        can.batch.start();
+        var node = this.set(index, computes, true);
+        computes.node = node;
+        can.batch.stop();
     },
 
     removeItems: function (items, offset) {
@@ -116,34 +96,16 @@ var DerivedList = RedBlackTree.extend({
         // Remove each item
         can.each(items, function (item, i) {
             var index = offset + i;
-
-            var result = self.remove({
-                index: index
-            });
-
-            lastRemovedIndex = index;
+            var result = self.unset(index, true);
         });
-
-        // Find the item after the remove(s)
-        // TODO: First remember, then comment on why `.lowerBound()` is
-        // used instead of `.find()`
-        iterator = this.lowerBound({
-            index: lastRemovedIndex + 1
-        });
-
-        // Decrement the remaining items' index by the number
-        // of items removed
-        if (iterator !== null) {
-            iterator.rest(function (computes) {
-                computes.index(computes.index() - items.length);
-            });
-        }
     }
 });
 
 // Handle the adding/removing of items to the derived list based on
 // the predicate
 var FilteredList = DerivedList.extend({
+
+    calculateGaps: false,
 
     init: function (sourceList, predicate, predicateContext) {
 
@@ -164,8 +126,8 @@ var FilteredList = DerivedList.extend({
     // By default, include all items
     predicate: function () { return true; },
 
-    // Bind to index/value and insert/remove based on the predicate
-    // function provided by the user
+    // Bind to index/value and determine whether to include/exclude the item
+    // based on the predicate function provided by the user
     addItem: function (computes) {
         var self = this;
 
@@ -185,30 +147,23 @@ var FilteredList = DerivedList.extend({
 
         // Add/remove based predicate change
         include.bind('change', function (ev, newVal, oldVal) {
+            var sourceIndex = self._source.indexOfNode(computes.node);
 
             if (newVal) {
-                // Don't worry about splice, because the index'
-                // are already managed by .derive()
-                self.insert(computes);
+                self.set(sourceIndex, computes.value(), true);
             } else {
-                self.remove(computes);
+                self.unset(sourceIndex, true);
             }
+        });
+
+        // Sync values
+        computes.value.bind('change', function (ev, newVal, oldVal) {
+            var sourceIndex = self._source.indexOfNode(computes.node);
+            self.set(sourceIndex, newVal);
         });
 
         // Trigger an "include" `change` event
         initialized(true);
-    },
-
-    removeItems: function (items, offset) {
-        var self = this;
-
-        can.each(items, function (item, i) {
-            var index = offset + i;
-
-            self.remove({
-                index: index
-            });
-        });
     },
 
     // Abstract away the node data and return only the value compute's value
@@ -228,12 +183,12 @@ var FilteredList = DerivedList.extend({
         }
     },
 
-    // Iterate over the value computes' values instead of the node's data
+    /*// Iterate over the value computes' values instead of the node's data
     each: function (callback) {
         RedBlackTree.prototype.each.call(this, function (data, i) {
-            return callback(data.value(), i);
+            return callback(data, i);
         });
-    },
+    },*/
 
     insert: function (data) {
         var insertIndex = this._parent.insert.apply(this, arguments);
