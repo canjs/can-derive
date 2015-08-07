@@ -6,20 +6,6 @@ QUnit.module('can/list', {
     setup: function () {}
 });
 
-window.printTree = function (tree, debug, start, count) {
-    console.log(tree.print(function (node) {
-        var index = tree.indexOfNode(node);
-        var value = (node.data === undefined ? '_' : node.data);
-        var out =  index;
-        if (debug !== false) {
-            out += '(' +node.leftCount + '|' + node.leftGapCount + '|' + node.rightCount + ')';
-        }
-        out += ':' + value;
-        return out;
-    }, start, count));
-};
-
-
 var letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 var dirtyAlphabet = letters.split('');
 dirtyAlphabet.splice(2, 0, 0);
@@ -34,7 +20,6 @@ var equalValues = function (list, expectedValues) {
     var foo = arguments[0];
     list.each(function (item, index) {
         if (item !== expectedValues[index]) {
-            debugger;
             match = false;
         }
         strictEqual(item, expectedValues[index], 'Items match');

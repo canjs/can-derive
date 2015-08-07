@@ -105,8 +105,6 @@ var DerivedList = RedBlackTree.extend({
 // the predicate
 var FilteredList = DerivedList.extend({
 
-    calculateGaps: false,
-
     init: function (sourceList, predicate, predicateContext) {
 
         // Overwrite the default predicate if one is provided
@@ -188,34 +186,7 @@ var FilteredList = DerivedList.extend({
         RedBlackTree.prototype.each.call(this, function (data, i) {
             return callback(data, i);
         });
-    },*/
-
-    insert: function (data) {
-        var insertIndex = this._parent.insert.apply(this, arguments);
-
-        if (insertIndex >= 0) {
-            this.dispatch('add', [[data.value()], insertIndex]);
-        }
-
-        return insertIndex;
-    },
-
-    // Trigger a "remove" event on successful insert
-    remove: function (data) {
-
-        // Get the node data before its removed from the tree
-        var nodeData = this.find(data);
-
-        // Remove, and get the index
-        var removeIndex = this._parent.remove.apply(this, arguments);
-
-        if (removeIndex >= 0) {
-            this.dispatch('remove', [[nodeData.value()], removeIndex]);
-        }
-
-        return removeIndex;
-    },
-
+    }
 });
 
 
