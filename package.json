@@ -10,10 +10,12 @@
   "devDependencies": {
     "system-npm": "^0.3.0",
     "steal": "^0.10.1",
-    "steal-qunit": "0.0.2"
+    "steal-qunit": "0.0.2",
+    "serve": "^1.4.0"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "serve -p 8080"
   },
   "keywords": [
     "CanJS"
