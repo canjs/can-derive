@@ -1,22 +1,23 @@
 {
-    "name": "can-derive",
-    "version": "0.0.1",
-    "description": "Derive a list/map from another via live binding",
-    "main": "derive.js",
-    "dependencies": {
-        "can": "https://github.com/bitovi/canjs.git#todomvc-and-can-derive",
-        "can-redblacktree": "git@github.com:akagomez/can-redblacktree.git#rbtreelist"
-    },
-    "devDependencies": {
-        "steal": "^0.10.1",
-        "steal-qunit": "0.0.2"
-    },
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "keywords": [
-        "CanJS"
-    ],
-    "author": "Bitovi",
-    "license": "MIT"
+  "name": "can-derive",
+  "version": "0.0.1",
+  "description": "Derive a list/map from another via live binding",
+  "main": "derive.js",
+  "dependencies": {
+    "can": "git://github.com/bitovi/canjs.git#todomvc-and-can-derive",
+    "can-redblacktree": "git://github.com/akagomez/can-redblacktree.git"
+  },
+  "devDependencies": {
+    "system-npm": "^0.3.0",
+    "steal": "^0.10.1",
+    "steal-qunit": "0.0.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "CanJS"
+  ],
+  "author": "Bitovi",
+  "license": "MIT"
 }

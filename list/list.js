@@ -1,3 +1,4 @@
+var can = require('can/util/util');
 var Map = require('can/map/map');
 var List = require('can/list/list');
 var TreeList = require('can-redblacktree');
