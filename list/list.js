@@ -7,6 +7,13 @@ var TreeList = require('can-redblacktree');
 // index in O(log(n)) time
 var DerivedList = TreeList.extend({
 
+    filter: function (predicate, predicateContext) {
+        var derivedList = new DerivedList(this);
+        var filteredList =
+            new FilteredList(derivedList, predicate, predicateContext);
+        return filteredList;
+    },
+
     init: function (sourceList) {
 
         var self = this;
@@ -237,11 +244,6 @@ var FilteredList = DerivedList.extend({
 });
 
 
-List.prototype.filter = function (predicate, predicateContext) {
-    var derivedList = new DerivedList(this);
-    var filteredList =
-        new FilteredList(derivedList, predicate, predicateContext);
-    return filteredList;
-};
+List.prototype.filter = DerivedList.prototype.filter;
 
 module.exports = List;
