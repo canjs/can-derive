@@ -226,11 +226,19 @@ var FilteredList = DerivedList.extend({
         RedBlackTree.prototype.each.call(this, function (node, i) {
             return callback(node.data.value(), i);
         });
+    },
+
+    _dispatchAdd: function (node, index) {
+        this.dispatch('add', [[node.data.value()], index]);
+    },
+
+    _dispatchRemove: function (node, index) {
+        this.dispatch('remove', [[node.data.value()], index]);
     }
 });
 
 
-List.prototype.filter = function (predicate, context, predicateContext) {
+List.prototype.filter = function (predicate, predicateContext) {
     var derivedList = new DerivedList(this);
     var filteredList =
         new FilteredList(derivedList, predicate, predicateContext);

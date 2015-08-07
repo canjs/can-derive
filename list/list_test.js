@@ -79,22 +79,29 @@ test('.filter() adds new items', function () {
     var derived = source.filter(filterFn);
     var expected;
 
+    derived.bind('add', function (ev, items, offset) {
+        items.forEach(function (item, index) {
+            equal(item, expected[offset + index],
+                'Add event reports correct value/index');
+        });
+    });
+
     // Add values
-    source.unshift('Aey');
     alphabet.unshift('Aey');
     expected = alphabet.filter(filterFn);
+    source.unshift('Aey');
 
     ok(equalValues(derived, expected), 'Item added via .unshift()');
 
-    source.splice(20, 0, 'Ohh');
     alphabet.splice(20, 0, 'Ohh');
     expected = alphabet.filter(filterFn);
+    source.splice(20, 0, 'Ohh');
 
     ok(equalValues(derived, expected), 'Item added via .splice()');
 
-    source.push('Zee');
     alphabet.push('Zee');
     expected = alphabet.filter(filterFn);
+    source.push('Zee');
 
     ok(equalValues(derived, expected), 'Item added via .push()');
 });
