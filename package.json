@@ -5,7 +5,8 @@
   "main": "derive.js",
   "dependencies": {
     "can": "git://github.com/bitovi/canjs.git#todomvc-and-can-derive",
-    "can-redblacktree": "git://github.com/akagomez/can-redblacktree.git"
+    "can-redblacktree": "git://github.com/akagomez/can-redblacktree.git",
+    "serve": "^1.4.0"
   },
   "devDependencies": {
     "system-npm": "^0.3.0",

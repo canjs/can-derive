@@ -4,6 +4,7 @@
 
 <script id="main-template" type="text/stache">
 <table>
+    <p>FPS: {{stats.fps}}</p>
     {{#each lists}}
         <tr>
             <td>{{label}}:</td>
@@ -23,7 +24,11 @@
 steal('can', 'can/view/stache', 'list', function () {
     var NUMBER_OF_DICE = 540;
     var numbers = new can.List();
+    var stats = new can.Map({ fps: 0 });
     var generateRandomNumber = function () { return Math.ceil(Math.random() * 99); }
+    var lastTick = 0;
+    var frames = 0;
+    var msecs = 0;
 
     for (var i = 0; i < NUMBER_OF_DICE; i++) {
         var hex = randomColor({
@@ -34,26 +39,38 @@ steal('can', 'can/view/stache', 'list', function () {
         numbers.push({
             hex: hex,
             number: generateRandomNumber()
-            // number: i
         });
     }
 
-    // setTimeout(function () {
-    //     numbers.attr(2).attr('number', 3);
-    // }, 1000);
+    requestAnimationFrame(frame);
 
-    setInterval(function () {
-        if (i >= NUMBER_OF_DICE) {
-            i = 0;
-        }
+    function frame() {
+      var now = performance.now();
+      msecs += (now - lastTick);
+      lastTick = now;
 
-        numbers.attr(i).attr('number', generateRandomNumber());
+      if (msecs >= 1000) {
+        stats.attr('fps', Math.round(frames / (msecs / 1000)));
+        frames = msecs = 0;
+      }
 
-        i++;
-    }, 0);
+      update(); // Comment out to see default FPS (should be ~60)
 
+      i++;
+      frames++;
+      requestAnimationFrame(frame);
+    }
 
-    $('#demo').append(can.view('main-template', { lists: [
+    function update() {
+      if (i >= NUMBER_OF_DICE) {
+          i = 0;
+      }
+      numbers.attr(i).attr('number', generateRandomNumber());
+    }
+
+    $('#demo').append(can.view('main-template', {
+      stats: stats,
+      lists: [
         {
             label: 'Source',
             numbers: numbers
