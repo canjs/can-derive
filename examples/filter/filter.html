@@ -68,22 +68,6 @@ steal('can', 'can/view/stache', 'list', function () {
       numbers.attr(i).attr('number', generateRandomNumber());
     }
 
-    var evenNumbers = numbers.filter(function (number) {
-        return number.attr('number') % 2 === 0;
-    });
-
-    var lessThan50 = evenNumbers.filter(function (number) {
-        return number.attr('number') <= 50;
-    });
-
-    var lessThan25 = evenNumbers.filter(function (number) {
-        return number.attr('number') <= 25;
-    });
-
-    var lessThan10 = evenNumbers.filter(function (number) {
-        return number.attr('number') <= 10;
-    });
-
     $('#demo').append(can.view('main-template', {
       stats: stats,
       lists: [
@@ -93,19 +77,27 @@ steal('can', 'can/view/stache', 'list', function () {
         },
         {
             label: 'Even',
-            numbers: evenNumbers
+            numbers: numbers.filter(function (number) {
+                return number.attr('number') % 2 === 0;
+            })
+        },
+        {
+            label: 'Odd',
+            numbers: numbers.filter(function (number) {
+                return number.attr('number') % 2 !== 0;
+            })
         },
         {
             label: '< 50',
-            numbers: lessThan50
+            numbers: numbers.filter(function (number) {
+                return number.attr('number') <= 50;
+            })
         },
         {
-            label: '< 25',
-            numbers: lessThan25
-        },
-        {
-            label: '< 10',
-            numbers: lessThan10
+            label: '> 50',
+            numbers: numbers.filter(function (number) {
+                return number.attr('number') >= 50;
+            })
         }
     ]}));
 
