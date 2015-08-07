@@ -96,8 +96,12 @@ var DerivedList = RedBlackTree.extend({
         // Remove each item
         can.each(items, function (item, i) {
             var index = offset + i;
-            var result = self.unset(index, true);
+            self.removeItem(item, index);
         });
+    },
+
+    removeItem: function (item, index) {
+        this.unset(index, true);
     }
 });
 
@@ -121,13 +125,37 @@ var FilteredList = DerivedList.extend({
     // in sync with the derived list's source list for us
     syncValues: can.noop,
 
+    _printIndexesValue: function (node) {
+        return node.data.value();
+    },
+
+    // Disable gaps in indexes
+    _gapAndSize: function () {
+        this.length++;
+    },
+
+    _sourceComparator: function (_a, _b) {
+        var a = _a instanceof this.Node ? this._source.indexOfNode(_a.data.node) : _a;
+        var b = _b instanceof this.Node ? this._source.indexOfNode(_b.data.node) : _b;
+
+        return a === b ? 0 : a < b ? -1 : 1; // ASC
+    },
+
+    _filterComparator: function (_a, _b) {
+        var a = _a instanceof this.Node ? this.indexOfNode(_a.data.filteredNode) : _a;
+        var b = _b instanceof this.Node ? this.indexOfNode(_b.data.filteredNode) : _b;
+
+        return a === b ? 0 : a < b ? -1 : 1; // ASC
+    },
+
     // By default, include all items
     predicate: function () { return true; },
 
     // Bind to index/value and determine whether to include/exclude the item
     // based on the predicate function provided by the user
-    addItem: function (computes) {
+    addItem: function (node) {
         var self = this;
+        var computes = node.data;
 
         // Default to false
         var initialized = can.compute(false);
@@ -146,22 +174,34 @@ var FilteredList = DerivedList.extend({
         // Add/remove based predicate change
         include.bind('change', function (ev, newVal, oldVal) {
             var sourceIndex = self._source.indexOfNode(computes.node);
+            var filteredNode;
+
+            self._comparator = self._sourceComparator;
 
             if (newVal) {
-                self.set(sourceIndex, computes.value(), true);
+
+                filteredNode = self.set(sourceIndex, computes, true);
+                computes.filteredNode = filteredNode;
             } else {
                 self.unset(sourceIndex, true);
+                delete computes.filteredNode;
             }
-        });
-
-        // Sync values
-        computes.value.bind('change', function (ev, newVal, oldVal) {
-            var sourceIndex = self._source.indexOfNode(computes.node);
-            self.set(sourceIndex, newVal);
         });
 
         // Trigger an "include" `change` event
         initialized(true);
+    },
+
+    removeItem: function (node) {
+        var filteredNode = node.data.filteredNode;
+
+        this._comparator = this._filterComparator;
+
+        if (filteredNode) {
+            index = this.indexOfNode(filteredNode);
+            this.unset(index, true);
+            delete node.data.filteredNode;
+        }
     },
 
     // Abstract away the node data and return only the value compute's value
@@ -181,10 +221,10 @@ var FilteredList = DerivedList.extend({
         }
     },
 
-    /*// Iterate over the value computes' values instead of the node's data
+    // Iterate over the value computes' values instead of the node's data
     each: function (callback) {
-        RedBlackTree.prototype.each.call(this, function (data, i) {
-            return callback(data, i);
+        RedBlackTree.prototype.each.call(this, function (node, i) {
+            return callback(node.data.value(), i);
         });
     }
 });

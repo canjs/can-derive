@@ -38,76 +38,90 @@ test('.filter() derives the correct initial values', function () {
     var filterFn = function (value, key) {
         return value ? true : false;
     };
-    var cleanAlphabet = dirtyAlphabet.slice().filter(filterFn);
+    var expected = dirtyAlphabet.slice().filter(filterFn);
     var derived = source.filter(filterFn);
 
-    ok(equalValues(derived, cleanAlphabet), 'Initial values are correct');
+    ok(equalValues(derived, expected), 'Initial values are correct');
 });
 
 test('.filter() applies value change', function () {
 
-    var source = new can.List(dirtyAlphabet);
-    var filterFn = function (value, key) {
-        return value ? true : false;
-    };
-    var cleanAlphabet = dirtyAlphabet.slice().filter(filterFn);
+    var alphabet = dirtyAlphabet.slice();
+    var source = new can.List(alphabet);
+    var filterFn = function (value, key) { return value ? true : false; };
     var derived = source.filter(filterFn);
+    var expected;
 
-    source.attr(4, 'DD'); // D > DD
-    cleanAlphabet[3] = 'DD'; // Update static list
-    ok(equalValues(derived, cleanAlphabet), 'Set derived'); // Compare
+    source.attr(4, 'DD'); // D -> DD
+    alphabet[4] = 'DD'; // Update static list
+    expected = alphabet.filter(filterFn);
 
-    source.attr(10, 'II'); // I > II
-    cleanAlphabet[8] = 'II';
-    ok(equalValues(derived, cleanAlphabet), 'Set derived');
+    ok(equalValues(derived, expected), 'Set derived'); // Compare
 
-    source.attr(29, 'XX'); // X > XX
-    cleanAlphabet[23] = 'XX';
-    ok(equalValues(derived, cleanAlphabet), 'Set derived');
+    source.attr(10, 'II'); // I -> II
+    alphabet[10] = 'II';
+    expected = alphabet.filter(filterFn);
+
+    ok(equalValues(derived, expected), 'Set derived');
+
+    source.attr(29, 'XX'); // X -> XX
+    alphabet[29] = 'XX';
+    expected = alphabet.filter(filterFn);
+
+    ok(equalValues(derived, expected), 'Set derived');
 });
 
 test('.filter() adds new items', function () {
 
-    var source = new can.List(dirtyAlphabet);
-    var filterFn = function (value, key) {
-        return value ? true : false;
-    };
-    var cleanAlphabet = dirtyAlphabet.slice().filter(filterFn);
+    var alphabet = dirtyAlphabet.slice();
+    var source = new can.List(alphabet);
+    var filterFn = function (value, key) { return value ? true : false; };
     var derived = source.filter(filterFn);
+    var expected;
 
     // Add values
     source.unshift('Aey');
-    cleanAlphabet.unshift('Aey');
-    ok(equalValues(derived, cleanAlphabet), 'Item added via .unshift()');
+    alphabet.unshift('Aey');
+    expected = alphabet.filter(filterFn);
+
+    ok(equalValues(derived, expected), 'Item added via .unshift()');
 
     source.splice(20, 0, 'Ohh');
-    cleanAlphabet.splice(16, 0, 'Ohh');
-    ok(equalValues(derived, cleanAlphabet), 'Item added via .splice()');
+    alphabet.splice(20, 0, 'Ohh');
+    expected = alphabet.filter(filterFn);
+
+    ok(equalValues(derived, expected), 'Item added via .splice()');
 
     source.push('Zee');
-    cleanAlphabet.push('Zee');
-    ok(equalValues(derived, cleanAlphabet), 'Item added via .push()');
+    alphabet.push('Zee');
+    expected = alphabet.filter(filterFn);
+
+    ok(equalValues(derived, expected), 'Item added via .push()');
 });
 
 test('.filter() removes existing items', function () {
-
-    var source = new can.List(dirtyAlphabet);
-    var filterFn = function (value, key) {
-        return value ? true : false;
-    };
-    var cleanAlphabet = dirtyAlphabet.slice().filter(filterFn);
+    var alphabet = dirtyAlphabet.slice();
+    var source = new can.List(alphabet);
+    var filterFn = function (value, key) { return value ? true : false; };
     var derived = source.filter(filterFn);
+    var expected;
 
     // Remove values
     source.shift();
-    cleanAlphabet.shift();
-    ok(equalValues(derived, cleanAlphabet), 'Item removed via .shift()');
+    alphabet.shift();
+    expected = alphabet.filter(filterFn);
+
+    ok(equalValues(derived, expected), 'Item removed via .shift()');
 
     source.splice(10, 1);
-    cleanAlphabet.splice(8, 1);
-    ok(equalValues(derived, cleanAlphabet), 'Item removed via .splice()');
+    alphabet.splice(10, 1);
+    expected = alphabet.filter(filterFn);
+
+    ok(equalValues(derived, expected), 'Item removed via .splice()');
 
     source.pop();
-    cleanAlphabet.pop();
-    ok(equalValues(derived, cleanAlphabet), 'Item removed via .pop()');
+    alphabet.pop();
+    expected = alphabet.filter(filterFn);
+
+    ok(equalValues(derived, expected), 'Item removed via .pop()');
 });
