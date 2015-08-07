@@ -5,13 +5,13 @@
   "main": "derive.js",
   "dependencies": {
     "can": "git://github.com/bitovi/canjs.git#todomvc-and-can-derive",
-    "can-redblacktree": "git://github.com/akagomez/can-redblacktree.git",
-    "serve": "^1.4.0"
+    "can-redblacktree": "git://github.com/akagomez/can-redblacktree.git"
   },
   "devDependencies": {
     "system-npm": "^0.3.0",
     "steal": "^0.10.1",
-    "steal-qunit": "0.0.2"
+    "steal-qunit": "0.0.2",
+    "serve": "^1.4.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
