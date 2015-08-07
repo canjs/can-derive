@@ -1,10 +1,10 @@
 var Map = require('can/map/map');
 var List = require('can/list/list');
-var RedBlackTree = require('can-redblacktree');
+var TreeList = require('can-redblacktree');
 
 // Use a tree so that items are sorted by the source list's
 // index in O(log(n)) time
-var DerivedList = RedBlackTree.extend({
+var DerivedList = TreeList.extend({
 
     init: function (sourceList) {
 
@@ -15,7 +15,7 @@ var DerivedList = RedBlackTree.extend({
         this._source = sourceList;
 
         // Setup the tree
-        RedBlackTree.prototype.init.apply(this, args.slice(1));
+        TreeList.prototype.init.apply(this, args.slice(1));
 
         // Make this list a reflection of the source list
         this.syncItems();
@@ -179,7 +179,6 @@ var FilteredList = DerivedList.extend({
             self._comparator = self._sourceComparator;
 
             if (newVal) {
-
                 filteredNode = self.set(sourceIndex, computes, true);
                 computes.filteredNode = filteredNode;
             } else {
@@ -206,15 +205,14 @@ var FilteredList = DerivedList.extend({
 
     // Abstract away the node data and return only the value compute's value
     attr: function () {
-
         if (arguments.length === 0) {
-            var list = RedBlackTree.prototype.attr.apply(this, arguments);
+            var list = TreeList.prototype.attr.apply(this, arguments);
 
             return list;
 
         // Return the node data's "value" compute value
         } else if (arguments.length === 1) {
-            var data = RedBlackTree.prototype.attr.apply(this, arguments);
+            var data = TreeList.prototype.attr.apply(this, arguments);
 
             // Node.data.value
             return data && data.value();
@@ -223,7 +221,7 @@ var FilteredList = DerivedList.extend({
 
     // Iterate over the value computes' values instead of the node's data
     each: function (callback) {
-        RedBlackTree.prototype.each.call(this, function (node, i) {
+        TreeList.prototype.each.call(this, function (node, i) {
             return callback(node.data.value(), i);
         });
     },
