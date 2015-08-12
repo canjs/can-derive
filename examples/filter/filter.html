@@ -23,6 +23,8 @@
 <script type="text/javascript">
 steal('can', 'can/view/stache', 'list', function () {
     var NUMBER_OF_DICE = 540;
+    var DO_UPDATE = true;  // change to false to see fps without update
+
     var numbers = new can.List();
     var stats = new can.Map({ fps: 0 });
     var generateRandomNumber = function () { return Math.ceil(Math.random() * 99); }
@@ -54,8 +56,7 @@ steal('can', 'can/view/stache', 'list', function () {
         frames = msecs = 0;
       }
 
-      update(); // Comment out to see default FPS (should be ~60)
-
+      if (DO_UPDATE) update();
       i++;
       frames++;
       requestAnimationFrame(frame);

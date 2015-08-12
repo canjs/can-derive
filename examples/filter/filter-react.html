@@ -1,0 +1,161 @@
+<title>React filter</title>
+
+<div id="demo"></div>
+
+<script src="https://fb.me/react-0.13.3.min.js"></script>
+<!--<script src="https://fb.me/react-0.13.3.js"></script>-->
+<script src="https://fb.me/JSXTransformer-0.13.3.js"></script>
+<script src="./random-color.js"></script>
+
+<script type='text/jsx'>
+  var MainTemplate = React.createClass({
+    getInitialState: function() {
+      return {
+        numbers: this.createNumbers(this.props.dice),
+        i: 0,
+        updates: 0,
+        msecs: 0,
+        lastTick: 0,
+        fps: 0
+      };
+    },
+
+    updateNumbers: function(doUpdate) {
+      this.setState(function(prevState, props) {
+        var now = performance.now();
+        var delta = now - prevState.lastTick;
+        var msecs = prevState.msecs + delta;
+        var fps = prevState.fps;
+        var updates = prevState.updates;
+
+        if (msecs >= 1000) {
+          fps = Math.round(updates / (msecs / 1000));
+          updates = msecs = 0;
+        }
+
+        if (doUpdate) {
+          prevState.numbers[prevState.i].number = this.generateRandomNumber();
+        }
+
+        return {
+          fps: fps,
+          updates: updates + 1,
+          msecs: msecs,
+          lastTick: now,
+          i: (prevState.i + 1) % props.dice,
+          numbers: prevState.numbers
+        };
+      });
+    },
+
+    generateRandomNumber: function() {
+      return Math.ceil(Math.random() * 99);
+    },
+
+    createNumbers: function(count) {
+      var arr = [];
+      while(arr.length < this.props.dice) {
+        arr.push({
+          hex: randomColor({ luminosity: 'dark', hue: 'random' }),
+          number: this.generateRandomNumber(),
+          key: arr.length
+        });
+      }
+      return arr;
+    },
+
+    deriveLists: function(numbers) {
+      return [
+        { label: 'Source', numbers: numbers },
+        { label: 'Even', numbers: numbers.filter(function(n) {
+          return n.number % 2 === 0;
+          })
+        },
+        { label: 'Odd', numbers: numbers.filter(function(n) {
+            return n.number % 2 !== 0;
+          })
+        },
+        { label: '< 50', numbers: numbers.filter(function(n) {
+          return n.number <= 50;
+          })
+        },
+        { label: '> 50', numbers: numbers.filter(function(n) {
+          return n.number >= 50;
+          })
+        }
+      ];
+    },
+
+    render: function() {
+      var lists = this.deriveLists(this.state.numbers);
+      var rows = lists.map(function(list) {
+        var numbers = list.numbers.map(function(n) {
+          var style = { backgroundColor: n.hex };
+          return (
+            <div className='circle' style={style} key={n.key}>{n.number}</div>
+          );
+        });
+        return (
+          <tr key={list.label}>
+            <td>{list.label}</td>
+            <td className='circles'>
+              {numbers}
+            </td>
+          </tr>
+        );
+      });
+      return (
+        <div>
+          <p>FPS: {this.state.fps}</p>
+          <table>
+            {rows}
+          </table>
+        </div>
+      );
+    }
+  });
+
+  var component = React.render(<MainTemplate dice={540} />, document.getElementById('demo'));
+  requestAnimationFrame(frame);
+
+  function frame() {
+    component.updateNumbers(true);   // change to false to see fps without updates
+    requestAnimationFrame(frame);
+  }
+
+</script>
+
+<style type="text/css">
+html {
+    font-family: sans-serif;
+    font-size: 12px;
+}
+table, tbody, th, tr, td {
+    border-spacing: 0;
+    border-collapse: collapse;
+    font-size: 1em;
+}
+td {
+    vertical-align: top;
+    line-height: 30px;
+}
+
+td:first-child {
+    width: 50px;
+    font-weight: bold;
+}
+td:last-child {
+    padding-bottom: 10px;
+}
+.circle {
+    float: left;
+    width: 30px;
+    height: 30px;
+    margin: 0 2px 1px;
+    text-align: center;
+    line-height: 30px;
+    border-radius: 50%;
+    color: #fff;
+    background-color: #eee;
+}
+</style>
