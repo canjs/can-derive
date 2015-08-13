@@ -1,0 +1,15 @@
+{
+  "name": "steal-qunit",
+  "version": "0.0.1",
+  "devDependencies": {
+    "qunit": "~1.14.0"
+  },
+  "ignore": [
+    "**/.*",
+    "package.json",
+    "bower.json",
+    "Gruntfile.js",
+    "node_modules",
+    "test"
+  ]
+}

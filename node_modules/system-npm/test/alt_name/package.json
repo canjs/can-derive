@@ -1,0 +1,9 @@
+{
+  "main": "alt_name",
+  "version": "1.0.0",
+  "dependencies": {
+    "tabs": "org/tabs#branch",
+    "framework-foo": "org/framework#branch",
+    "library": "org/library#branch"
+  }
+}

@@ -1,0 +1,12 @@
+<html>
+<head>
+	<title>system-npm demo</title>
+</head>
+	<script src="vendor/system.js"></script>
+	<script src="config.js"></script>
+	<script>
+		System.import("package.json!npm").then(function(){
+			console.log("You\'re using system-npm!");
+		});
+	</script>
+</html>

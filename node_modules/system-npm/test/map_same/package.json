@@ -1,0 +1,12 @@
+{
+	"name": "mod",
+	"main": "main",
+	"dependencies": {
+		"can": "1.0.0"
+	},
+	"system": {
+		"map": {
+			"can": "./can"
+		}
+	}
+}

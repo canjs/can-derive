@@ -1,0 +1,14 @@
+{
+	"name": "my-module",
+	"version": "1.0.0",
+	"main": "main",
+	"devDependencies": {
+		"one": "1.0.0",
+		"two": "1.0.0"
+	},
+	"system": {
+		"npmIgnore": [
+			"two"
+		]
+	}
+}

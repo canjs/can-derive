@@ -1,0 +1,15 @@
+{
+  "name": "steal-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "browser": "browser.js",
+  "license": "ISC",
+  "dependencies": {
+    "steal": "^0.7.2"
+  }
+}

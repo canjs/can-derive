@@ -1,0 +1,12 @@
+{
+	"name": "extconfig",
+	"main": "main",
+	"dependencies": {
+		"one": "1.0.0"
+	},
+	"system": {
+		"configDependencies": [
+			"override_deps"
+		]
+	}
+}
