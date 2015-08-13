@@ -7,12 +7,12 @@
     <a href="javascript://" class="less circle" title="Remove dots (tap or hold)">-</a>
     <a href="javascript://" class="more circle" title="Add dots (tap or hold)">+</a>
     <a href="javascript://" class="randomize circle" title="Set each dot to new random number (tap or mash)">?</a>
-    Nodes: {{lists.0.numbers.length}}
+    Dots: {{lists.0.numbers.length}}
 </div>
 <div class="cols">
     {{#each lists}}
         <div class="col col-{{@index}} circles">
-            <h3>{{label}}:</h3>
+            <h3>{{label}} {{#eq @index 0}}(click){{/if}}:</h3>
 
             {{#each numbers}}
                 <div class="circle" style="background-color: {{hex}}">
@@ -147,6 +147,12 @@ html {
 }
 .col {
     flex: 1 1 0;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 .col-0 .circle {
     cursor: pointer;
