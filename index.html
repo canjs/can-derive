@@ -85,11 +85,13 @@ steal('can', 'can/view/stache', 'list', function () {
         };
 
         $(selector).bind('mousedown', function() {
+            $(this).addClass('pressed');
             applyVector();
             timeoutId = setTimeout(function () {
                 requestId = window.requestAnimationFrame(applyVector);
             }, 300);
         }).bind('mouseup mouseleave', function() {
+            $(this).removeClass('pressed');
             clearTimeout(timeoutId);
             window.cancelAnimationFrame(requestId);
             requestId = 0;
@@ -170,6 +172,10 @@ html {
     color: #fff;
     background-color: #000;
     text-decoration: none;
+}
+
+.circle.pressed {
+    background-color: #999;
 }
 </style>
 
