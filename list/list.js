@@ -8,19 +8,9 @@ var TreeList = require('can-redblacktree');
 var DerivedList = TreeList.extend({
 
     filter: function (predicate, predicateContext) {
-        var derivedList = this._derivedList;
-        var filteredList;
-
-        if (! derivedList) {
-            derivedList = new DerivedList(this);
-        }
-
-        filteredList =
+        var derivedList = new DerivedList(this);
+        var filteredList =
             new FilteredList(derivedList, predicate, predicateContext);
-
-        // Cache the derived list
-        this._derivedList = derivedList;
-
         return filteredList;
     },
 
