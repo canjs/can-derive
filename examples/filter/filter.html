@@ -38,10 +38,12 @@ steal('can', 'can/view/stache', 'list', function () {
            hue: 'random'
         });
 
+        can.batch.start()
         numbers.push({
             hex: hex,
             number: generateRandomNumber()
         });
+        can.batch.stop()
     }
 
     requestAnimationFrame(frame);
