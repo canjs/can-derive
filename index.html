@@ -109,7 +109,9 @@ steal('can', 'can/view/stache', 'list', function () {
         var updateNext = function () {
             var dot = numbers.attr(i);
 
-            dot.attr('number', generateRandomNumber());
+            if (dot) {
+                dot.attr('number', generateRandomNumber());
+            }
 
             if (i >= numbers.attr('length') - 1) {
                 return;
