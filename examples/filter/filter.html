@@ -3,7 +3,7 @@
 <div id="demo"></div>
 
 <script id="main-template" type="text/stache">
-<p>FPS: {{stats.fps}}</p>
+<p>FPS: {{stats.fps}}, Peak: {{stats.peak}}</p>
 <table>
     {{#each lists}}
         <tr>
@@ -22,11 +22,11 @@
 <script src="./random-color.js"></script>
 <script type="text/javascript">
 steal('can', 'can/view/stache', 'list', function () {
-    var NUMBER_OF_DICE = 540;
+    var NUMBER_OF_DICE = 50;
     var DO_UPDATE = true;  // change to false to see fps without update
 
     var numbers = new can.List();
-    var stats = new can.Map({ fps: 0 });
+    var stats = new can.Map({ fps: 0, peak: -Infinity });
     var generateRandomNumber = function () { return Math.ceil(Math.random() * 99); }
     var lastTick = 0;
     var frames = 0;
@@ -48,11 +48,14 @@ steal('can', 'can/view/stache', 'list', function () {
 
     function frame() {
       var now = performance.now();
+      var fps;
       msecs += (now - lastTick);
       lastTick = now;
 
       if (msecs >= 1000) {
-        stats.attr('fps', Math.round(frames / (msecs / 1000)));
+        fps = Math.round(frames / (msecs / 1000));
+        stats.attr('fps', fps);
+        stats.attr('peak', Math.max(fps, stats.attr('peak')));
         frames = msecs = 0;
       }
 

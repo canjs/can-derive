@@ -16,7 +16,8 @@
         updates: 0,
         msecs: 0,
         lastTick: 0,
-        fps: 0
+        fps: 0,
+        peak: -Infinity
       };
     },
 
@@ -43,7 +44,8 @@
           msecs: msecs,
           lastTick: now,
           i: (prevState.i + 1) % props.dice,
-          numbers: prevState.numbers
+          numbers: prevState.numbers,
+          peak: Math.max(fps, prevState.peak)
         };
       });
     },
@@ -106,7 +108,7 @@
       });
       return (
         <div>
-          <p>FPS: {this.state.fps}</p>
+          <p>FPS: {this.state.fps}, Peak: {this.state.peak}</p>
           <table>
             {rows}
           </table>
@@ -115,7 +117,7 @@
     }
   });
 
-  var component = React.render(<MainTemplate dice={540} />, document.getElementById('demo'));
+  var component = React.render(<MainTemplate dice={50} />, document.getElementById('demo'));
   requestAnimationFrame(frame);
 
   function frame() {
