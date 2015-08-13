@@ -1,0 +1,166 @@
+<title>can.List.filter()</title>
+
+<div id="demo"></div>
+
+<script id="main-template" type="text/stache">
+<div class="controls">
+    <a href="javascript://" class="less circle">-</a>
+    <a href="javascript://" class="more circle">+</a>
+    <a href="javascript://" class="randomize circle">?</a>
+    Nodes: {{lists.0.numbers.length}}
+</div>
+<div class="cols">
+    {{#each lists}}
+        <div class="col col-{{@index}} circles">
+            <h3>{{label}}:</h3>
+
+            {{#each numbers}}
+                <div class="circle" style="background-color: {{hex}}">
+                    {{number}}
+                </div>
+            {{/each}}
+        </div>
+    {{/each}}
+</div>
+</script>
+
+<script src="../../node_modules/steal/steal.js"></script>
+<script src="./random-color.js"></script>
+<script type="text/javascript">
+steal('can', 'can/view/stache', 'list', function () {
+    var numbers = new can.List();
+    var generateRandomNumber = function () { return Math.ceil(Math.random() * 99); }
+
+    $('#demo').append(can.view('main-template', {
+      lists: [
+        {
+            label: 'Source',
+            numbers: numbers
+        },
+        {
+            label: 'Even',
+            numbers: numbers.filter(function (number) {
+                return number.attr('number') % 2 === 0;
+            })
+        },
+        {
+            label: 'Odd',
+            numbers: numbers.filter(function (number) {
+                return number.attr('number') % 2 !== 0;
+            })
+        },
+        {
+            label: '< 50',
+            numbers: numbers.filter(function (number) {
+                return number.attr('number') <= 50;
+            })
+        },
+        {
+            label: '> 50',
+            numbers: numbers.filter(function (number) {
+                return number.attr('number') >= 50;
+            })
+        }
+    ]}));
+
+    var onMouseHold = function (selector, vector) {
+        var timeoutId = 0;
+        var requestId = 0;
+
+        var applyVector = function () {
+            if (vector > 0) {
+                var hex = randomColor({ luminosity: 'dark', hue: 'random' });
+
+                numbers.push({
+                    hex: hex,
+                    number: generateRandomNumber()
+                });
+            } else {
+                numbers.pop();
+            }
+
+            if (requestId) {
+                requestId = window.requestAnimationFrame(applyVector);
+            }
+        };
+
+        $(selector).bind('mousedown', function() {
+            applyVector();
+            timeoutId = setTimeout(function () {
+                requestId = window.requestAnimationFrame(applyVector);
+            }, 300);
+        }).bind('mouseup mouseleave', function() {
+            clearTimeout(timeoutId);
+            window.cancelAnimationFrame(requestId);
+            requestId = 0;
+        });
+    };
+
+    onMouseHold('.less', -1);
+    onMouseHold('.more', 1);
+    $('body').on('click', '.col-0 .circle', function () {
+        var index = $(this).index() - 1;
+        numbers.attr(index).attr('number', generateRandomNumber());
+    });
+    $('.randomize').click(function () {
+        var requestId = 0;
+        var i = 0;
+
+        var updateNext = function () {
+            var dot = numbers.attr(i);
+
+            dot.attr('number', generateRandomNumber());
+
+            if (i >= numbers.attr('length') - 1) {
+                return;
+            } else {
+                i++;
+            }
+
+            window.requestAnimationFrame(updateNext);
+        }
+
+        window.requestAnimationFrame(updateNext);
+
+    });
+
+});
+</script>
+
+<style type="text/css">
+html {
+    font-family: sans-serif;
+    font-size: 12px;
+    overflow-y: scroll;
+    text-transform: uppercase;
+}
+.controls {
+    line-height: 30px;
+}
+.controls .circle {
+    margin: 0 5px 0 0;
+}
+.cols {
+    clear: left;
+    display: flex;
+    flex-direction: horizontal;
+}
+.col {
+    flex: 1 1 0;
+}
+.col-0 .circle {
+    cursor: pointer;
+}
+.circle {
+    float: left;
+    width: 30px;
+    height: 30px;
+    margin: 0;
+    text-align: center;
+    line-height: 30px;
+    border-radius: 50%;
+    color: #fff;
+    background-color: #000;
+    text-decoration: none;
+}
+</style>
