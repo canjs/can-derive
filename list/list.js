@@ -8,10 +8,18 @@ var TreeList = require('can-redblacktree');
 var DerivedList = TreeList.extend({
 
     filter: function (predicate, predicateContext) {
-        var derivedList = new DerivedList(this);
+        if (! this._derivedList) {
+            this._derivedList = new DerivedList(this);
+        }
+
         var filteredList =
-            new FilteredList(derivedList, predicate, predicateContext);
+            new FilteredList(this._derivedList, predicate, predicateContext);
+
         return filteredList;
+    },
+
+    _printIndexesValue: function (node) {
+        return node.data.value();
     },
 
     init: function (sourceList) {
@@ -26,11 +34,12 @@ var DerivedList = TreeList.extend({
         TreeList.prototype.init.apply(this, args.slice(1));
 
         // Make this list a reflection of the source list
-        this.syncItems();
+        this.syncAdds();
+        this.syncRemoves();
         this.syncValues();
     },
 
-    syncItems: function () {
+    syncAdds: function () {
 
         var self = this;
 
@@ -43,6 +52,11 @@ var DerivedList = TreeList.extend({
         this._source.bind('add', function (ev, items, offset) {
             self.addItems(items, offset);
         });
+    },
+
+    syncRemoves: function () {
+
+        var self = this;
 
         // Remove future items
         this._source.bind('remove', function (ev, items, offset) {
@@ -133,27 +147,32 @@ var FilteredList = DerivedList.extend({
     // in sync with the derived list's source list for us
     syncValues: can.noop,
 
-    _printIndexesValue: function (node) {
-        return node.data.value();
+    syncRemoves: function () {
+
+        var self = this;
+
+        // Remove future items
+        this._source.bind('pre-remove', function (ev, items, offset) {
+            self.removeItems(items, offset);
+        });
     },
+
 
     // Disable gaps in indexes
     _gapAndSize: function () {
         this.length++;
     },
 
-    _sourceComparator: function (_a, _b) {
-        var a = _a instanceof this.Node ? this._source.indexOfNode(_a.data.node) : _a;
-        var b = _b instanceof this.Node ? this._source.indexOfNode(_b.data.node) : _b;
-
+    _comparator: function (_a, _b) {
+        var a = this._normalizeComparatorValue(_a);
+        var b = this._normalizeComparatorValue(_b);
         return a === b ? 0 : a < b ? -1 : 1; // ASC
     },
 
-    _filterComparator: function (_a, _b) {
-        var a = _a instanceof this.Node ? this.indexOfNode(_a.data.filteredNode) : _a;
-        var b = _b instanceof this.Node ? this.indexOfNode(_b.data.filteredNode) : _b;
-
-        return a === b ? 0 : a < b ? -1 : 1; // ASC
+    _normalizeComparatorValue: function (value) {
+        return value instanceof this.Node ?
+            this._source.indexOfNode(value.data.node) :
+            value;
     },
 
     // By default, include all items
@@ -184,8 +203,6 @@ var FilteredList = DerivedList.extend({
             var sourceIndex = self._source.indexOfNode(computes.node);
             var filteredNode;
 
-            self._comparator = self._sourceComparator;
-
             if (newVal) {
                 filteredNode = self.set(sourceIndex, computes, true);
                 computes.filteredNode = filteredNode;
@@ -199,16 +216,8 @@ var FilteredList = DerivedList.extend({
         initialized(true);
     },
 
-    removeItem: function (node) {
-        var filteredNode = node.data.filteredNode;
-
-        this._comparator = this._filterComparator;
-
-        if (filteredNode) {
-            index = this.indexOfNode(filteredNode);
-            this.unset(index, true);
-            delete node.data.filteredNode;
-        }
+    removeItem: function (item, sourceIndex) {
+        this.unset(sourceIndex, true);
     },
 
     // Abstract away the node data and return only the value compute's value
