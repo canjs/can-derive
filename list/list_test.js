@@ -2,7 +2,7 @@ var QUnit = require("steal-qunit");
 var Map = require("../map/map");
 var List = require("./list");
 
-QUnit.module('can/list', {
+QUnit.module('.filter()', {
     setup: function () {}
 });
 
@@ -28,11 +28,11 @@ var equalValues = function (list, expectedValues) {
     return match;
 };
 
-test('Has filter method', function () {
+test('Method exists', function () {
     ok(List.prototype.filter, 'List has filter method');
 });
 
-test('.filter() derives the correct initial values', function () {
+test('Derives initial values', function () {
 
     var source = new can.List(dirtyAlphabet);
     var filterFn = function (value, key) {
@@ -44,7 +44,7 @@ test('.filter() derives the correct initial values', function () {
     ok(equalValues(derived, expected), 'Initial values are correct');
 });
 
-test('.filter() applies value change', function () {
+test('Changes to source list are synced to their derived list', function () {
 
     var alphabet = dirtyAlphabet.slice();
     var source = new can.List(alphabet);
@@ -71,7 +71,7 @@ test('.filter() applies value change', function () {
     ok(equalValues(derived, expected), 'Set derived');
 });
 
-test('.filter() adds new items', function () {
+test('Items added to a source list get added to their derived list', function () {
 
     var alphabet = dirtyAlphabet.slice();
     var source = new can.List(alphabet);
@@ -106,7 +106,7 @@ test('.filter() adds new items', function () {
     ok(equalValues(derived, expected), 'Item added via .push()');
 });
 
-test('.filter() removes existing items', function () {
+test('Items removed from a source list are removed from their derived list', function () {
     var alphabet = dirtyAlphabet.slice();
     var source = new can.List(alphabet);
     var filterFn = function (value, key) { return value ? true : false; };
@@ -132,3 +132,11 @@ test('.filter() removes existing items', function () {
 
     ok(equalValues(derived, expected), 'Item removed via .pop()');
 });
+
+test('Predicate function can be bound to source index', function () {
+
+});
+
+test('Is chainable', function () {
+
+})
