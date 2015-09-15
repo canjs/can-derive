@@ -6,6 +6,7 @@
 <!--<script src="https://fb.me/react-0.13.3.js"></script>-->
 <script src="https://fb.me/JSXTransformer-0.13.3.js"></script>
 <script src="./random-color.js"></script>
+<script src="./numbers.js"></script>
 
 <script type='text/jsx'>
   var MainTemplate = React.createClass({
@@ -35,7 +36,8 @@
         }
 
         if (doUpdate) {
-          prevState.numbers[prevState.i].number = this.generateRandomNumber();
+          prevState.numbers[prevState.i].number =
+            numbersLib.alternateNumber(prevState.numbers[prevState.i].number);
         }
 
         return {
@@ -59,7 +61,8 @@
       while(arr.length < this.props.dice) {
         arr.push({
           hex: randomColor({ luminosity: 'dark', hue: 'random' }),
-          number: this.generateRandomNumber(),
+          number: numbersLib.generateRandomNumber(),
+          // number: arr.length * 2,
           key: arr.length
         });
       }
@@ -78,7 +81,7 @@
           })
         },
         { label: '< 50', numbers: numbers.filter(function(n) {
-          return n.number <= 50;
+          return n.number < 50;
           })
         },
         { label: '> 50', numbers: numbers.filter(function(n) {
@@ -117,7 +120,7 @@
     }
   });
 
-  var component = React.render(<MainTemplate dice={50} />, document.getElementById('demo'));
+  var component = React.render(<MainTemplate dice={10000} />, document.getElementById('demo'));
   requestAnimationFrame(frame);
 
   function frame() {
@@ -140,6 +143,7 @@ table, tbody, th, tr, td {
 td {
     vertical-align: top;
     line-height: 30px;
+    height: 42px;
 }
 
 td:first-child {
@@ -150,6 +154,7 @@ td:last-child {
     padding-bottom: 10px;
 }
 .circle {
+    display: none;
     float: left;
     width: 30px;
     height: 30px;
