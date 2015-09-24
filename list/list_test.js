@@ -35,7 +35,7 @@ test('Method exists', function () {
 test('Derives initial values', function () {
 
     var source = new can.List(dirtyAlphabet);
-    var filterFn = function (value, key) {
+    var filterFn = function (value, index) {
         return value ? true : false;
     };
     var expected = dirtyAlphabet.slice().filter(filterFn);
@@ -48,7 +48,7 @@ test('Changes to source list are synced to their derived list', function () {
 
     var alphabet = dirtyAlphabet.slice();
     var source = new can.List(alphabet);
-    var filterFn = function (value, key) { return value ? true : false; };
+    var filterFn = function (value, index) { return value ? true : false; };
     var derived = source.filter(filterFn);
     var expected;
 
@@ -75,7 +75,7 @@ test('Items added to a source list get added to their derived list', function ()
 
     var alphabet = dirtyAlphabet.slice();
     var source = new can.List(alphabet);
-    var filterFn = function (value, key) { return value ? true : false; };
+    var filterFn = function (value, index) { return value ? true : false; };
     var derived = source.filter(filterFn);
     var expected;
 
@@ -86,19 +86,21 @@ test('Items added to a source list get added to their derived list', function ()
         });
     });
 
-    // Add values
+    // Insert before
     alphabet.unshift('Aey');
     expected = alphabet.filter(filterFn);
     source.unshift('Aey');
 
     ok(equalValues(derived, expected), 'Item added via .unshift()');
 
+    // Insert between
     alphabet.splice(20, 0, 'Ohh');
     expected = alphabet.filter(filterFn);
     source.splice(20, 0, 'Ohh');
 
     ok(equalValues(derived, expected), 'Item added via .splice()');
 
+    // Insert after
     alphabet.push('Zee');
     expected = alphabet.filter(filterFn);
     source.push('Zee');
@@ -109,23 +111,25 @@ test('Items added to a source list get added to their derived list', function ()
 test('Items removed from a source list are removed from their derived list', function () {
     var alphabet = dirtyAlphabet.slice();
     var source = new can.List(alphabet);
-    var filterFn = function (value, key) { return value ? true : false; };
+    var filterFn = function (value, index) { return value ? true : false; };
     var derived = source.filter(filterFn);
     var expected;
 
-    // Remove values
+    // Remove first
     source.shift();
     alphabet.shift();
     expected = alphabet.filter(filterFn);
 
     ok(equalValues(derived, expected), 'Item removed via .shift()');
 
+    // Remove middle
     source.splice(10, 1);
     alphabet.splice(10, 1);
     expected = alphabet.filter(filterFn);
 
     ok(equalValues(derived, expected), 'Item removed via .splice()');
 
+    // Remove last
     source.pop();
     alphabet.pop();
     expected = alphabet.filter(filterFn);
@@ -134,6 +138,63 @@ test('Items removed from a source list are removed from their derived list', fun
 });
 
 test('Predicate function can be bound to source index', function () {
+    var alphabet = dirtyAlphabet.slice();
+    var source = new can.List(alphabet);
+    var filterFn = function (value, index) { return index % 2 === 0; };
+    var derived = source.filter(filterFn);
+    var expected = alphabet.filter(filterFn);
+
+    // Initial values
+    ok(equalValues(derived, expected), 'Odd indexed items excluded');
+
+    // Insert at the beginning
+    source.unshift(true);
+    alphabet.unshift(true);
+    expected = alphabet.filter(filterFn);
+
+    ok(equalValues(derived, expected), 'Items are flopped after an insert at the beginning');
+
+    // Remove from the beginning
+    source.shift();
+    alphabet.shift();
+    expected = alphabet.filter(filterFn);
+
+    ok(equalValues(derived, expected), 'Items are flopped after a remove at the beginning');
+
+    // Insert at the middle
+    source.splice(10, 0, '10A');
+    alphabet.splice(10, 0, '10A');
+    expected = alphabet.filter(filterFn);
+
+    ok(equalValues(derived, expected), 'Segment of items are flopped after an insert (in the middle)');
+
+    // Remove from the middle
+    source.splice(11, 1);
+    alphabet.splice(11, 1);
+    expected = alphabet.filter(filterFn);
+
+    ok(equalValues(derived, expected), 'Segment of items are flopped after a remove (in the middle)');
+
+    // Replace in the middle
+    source.splice(10, 1, '10B');
+    alphabet.splice(10, 1, '10B');
+    expected = alphabet.filter(filterFn);
+
+    ok(equalValues(derived, expected), 'Items are mostly unchanged after a replace');
+
+    // Add at the end
+    source.push('ZZZ');
+    alphabet.push('ZZZ');
+    expected = alphabet.filter(filterFn);
+
+    ok(equalValues(derived, expected), 'Item is added at the end');
+
+    // Remove at the end
+    source.pop();
+    alphabet.pop();
+    expected = alphabet.filter(filterFn);
+
+    ok(equalValues(derived, expected), 'Item is removed from the end');
 
 });
 

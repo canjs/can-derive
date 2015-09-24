@@ -7,6 +7,10 @@ var TreeList = require('can-redblacktree');
 // index in O(log(n)) time
 var DerivedList = TreeList.extend({
 
+    // A flag that determines if index influencing operations like shift
+    // and splice should result in O(n) index compute updates
+    _indexBound: false,
+
     filter: function (predicate, predicateContext) {
         if (! this._derivedList) {
             this._derivedList = new DerivedList(this);
@@ -15,11 +19,13 @@ var DerivedList = TreeList.extend({
         var filteredList =
             new FilteredList(this._derivedList, predicate, predicateContext);
 
-        return filteredList;
-    },
+        // Set _indexBound to true if this filtered list depends on the
+        // index. Once set to true there's no going back.
+        if (! this._derivedList._indexBound && filteredList._indexBound) {
+            this._derivedList._indexBound = true;
+        }
 
-    _printIndexesValue: function (node) {
-        return node.data.value();
+        return filteredList;
     },
 
     init: function (sourceList) {
@@ -96,19 +102,50 @@ var DerivedList = TreeList.extend({
         });
     },
 
-    addItem: function (item, index) {
+    addItem: function (item, insertIndex) {
+        var node;
 
         // Store information in a way that changes can be bound to
         var computes = {};
-        computes.index = can.compute(index);
+        computes.index = can.compute(insertIndex);
         computes.value = can.compute(item);
 
         // Don't dispatch the resulting "add" event until a reference
         // to the node has been saved to the `computes` object
         can.batch.start();
-        var node = this.set(index, computes, true);
+        node = this.set(insertIndex, computes, true);
         computes.node = node;
         can.batch.stop();
+
+        this.propagateIndexAdjustment(insertIndex + 1);
+    },
+
+    propagateIndexAdjustment: function (affectedIndex) {
+
+        var i, node;
+
+        // When the `_indexBound` flag is true that means that a predicate
+        // function of one of the filtered lists that use this derived list
+        // as their source is bound to the index. This is unfortunate,
+        // because now we have to manually update a compute that stores the
+        // index so that the filtered list that is bound to the index can
+        // re-run its predicate function for all of the items whos indices
+        // have changed. Which of course now makes this an O(n) filter. And
+        // worse, this will apply to the  filtered lists that don't depend
+        // on the index too!
+        if (this._indexBound) {
+
+            i = affectedIndex;
+            node = this.get(i);
+
+            // Iterate using the linked-list, it's faster than
+            // for (i) { this.get(i); }
+            while (node) {
+                node.data.index(i);
+                node = node.next;
+                i++;
+            }
+        }
     },
 
     removeItems: function (items, offset) {
@@ -122,9 +159,14 @@ var DerivedList = TreeList.extend({
         });
     },
 
-    removeItem: function (item, index) {
-        this.unset(index, true);
-    }
+    removeItem: function (item, removedIndex) {
+        this.unset(removedIndex, true);
+        this.propagateIndexAdjustment(removedIndex);
+    },
+
+    _printIndexesValue: function (node) {
+        return node.data.value();
+    },
 });
 
 // Handle the adding/removing of items to the derived list based on
@@ -136,6 +178,11 @@ var FilteredList = DerivedList.extend({
         // Overwrite the default predicate if one is provided
         if (predicate) {
             this.predicate = can.proxy(predicate, predicateContext);
+        }
+
+        // Mark this derived list as bound to indexes
+        if (predicate.length > 1) {
+            this._indexBound = true;
         }
 
         // Setup bindings, initialize the tree
@@ -190,25 +237,31 @@ var FilteredList = DerivedList.extend({
         // Determine whether to include or not
         var include = can.compute(function () {
 
+            var index;
+
             // Ensure first change event's "oldVal" is `false`
             if (! initialized()) { return false; }
 
+            // If the user has provided a predicate function that depends
+            // on the index argument, bind to it directly; Everything's O(n)
+            // from here on out (for this particular list)
+            if (this._indexBound) {
+                index = computes.index();
+            }
+
             // Use the predicate function to determine if this
             // item should be included in the overall list
-            return this.predicate(computes.value(), computes.index());
+            return this.predicate(computes.value(), index);
         }, this);
 
         // Add/remove based predicate change
         include.bind('change', function (ev, newVal, oldVal) {
             var sourceIndex = self._source.indexOfNode(computes.node);
-            var filteredNode;
 
             if (newVal) {
-                filteredNode = self.set(sourceIndex, computes, true);
-                computes.filteredNode = filteredNode;
+                self.set(sourceIndex, computes, true);
             } else {
                 self.unset(sourceIndex, true);
-                delete computes.filteredNode;
             }
         });
 
