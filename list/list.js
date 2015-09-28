@@ -237,21 +237,31 @@ var FilteredList = DerivedList.extend({
         // Determine whether to include or not
         var include = can.compute(function () {
 
-            var index;
+            var index, result, sourceCollection, value;
 
             // Ensure first change event's "oldVal" is `false`
             if (! initialized()) { return false; }
 
+            value = computes.value();
+            sourceCollection = this._source._source;
+
             // If the user has provided a predicate function that depends
             // on the index argument, bind to it directly; Everything's O(n)
-            // from here on out (for this particular list)
+            // from here on out (for this particular derived list)
             if (this._indexBound) {
                 index = computes.index();
             }
 
+            // If the user has provided a predicate function that depends
+            // on the source collection, bind to length changes so that
+            // the `include` compute will be re-evaluated
+            if (this.predicate.length > 2) {
+                sourceCollection.attr('length');
+            }
+
             // Use the predicate function to determine if this
             // item should be included in the overall list
-            return this.predicate(computes.value(), index);
+            return this.predicate(value, index, sourceCollection);
         }, this);
 
         // Add/remove based predicate change
