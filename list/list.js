@@ -164,9 +164,17 @@ var DerivedList = TreeList.extend({
         this.propagateIndexAdjustment(removedIndex);
     },
 
+    // Derived/filtered aren't writeable like traditional lists, they're
+    // values are maintained via event bindings
+    push: can.noop,
+    pop: can.noop,
+    shift: can.noop,
+    unshift: can.noop,
+    splice: can.noop,
+
     _printIndexesValue: function (node) {
         return node.data.value();
-    },
+    }
 });
 
 // Handle the adding/removing of items to the derived list based on
@@ -283,22 +291,6 @@ var FilteredList = DerivedList.extend({
         this.unset(sourceIndex, true);
     },
 
-    // Abstract away the node data and return only the value compute's value
-    attr: function () {
-        if (arguments.length === 0) {
-            var list = TreeList.prototype.attr.apply(this, arguments);
-
-            return list;
-
-        // Return the node data's "value" compute value
-        } else if (arguments.length === 1) {
-            var data = TreeList.prototype.attr.apply(this, arguments);
-
-            // Node.data.value
-            return data && data.value();
-        }
-    },
-
     // Iterate over the value computes' values instead of the node's data
     each: function (callback) {
         TreeList.prototype.each.call(this, function (node, i) {
@@ -306,16 +298,31 @@ var FilteredList = DerivedList.extend({
         });
     },
 
-    _dispatchAdd: function (node, index) {
-        this.dispatch('add', [[node.data.value()], index]);
-    },
+    // The default TreeList add/remove/pre-remove events pass the Node
+    // as the newVal/oldVal, but the derived list is publicly consumed by
+    // lots of things that think it's can.List-like; Instead dispatch the
+    // event with the Node's "value" compute value
+    _triggerChange: function (attr, how, newVal, oldVal) {
+        var nodeConstructor = this.Node;
 
-    _dispatchRemove: function (node, index) {
-        this.dispatch('remove', [[node.data.value()], index]);
+        // Modify existing newVal/oldVal arrays values
+        can.each([newVal, oldVal], function (newOrOldValues) {
+            can.each(newOrOldValues, function (value, index) {
+                if (value instanceof nodeConstructor) {
+                    newOrOldValues[index] = value.data.value();
+                }
+            })
+        });
+
+        // Emit the event without any Node's as new/old values
+        TreeList.prototype._triggerChange.apply(this, arguments);
     }
 });
 
+// Overwrite the default `.filter()` method with our derived list filter
+// method
+var FilterPluginList = List.extend({
+    filter: DerivedList.prototype.filter
+});
 
-List.prototype.filter = DerivedList.prototype.filter;
-
-module.exports = List;
+module.exports = FilterPluginList;

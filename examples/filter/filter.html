@@ -34,8 +34,8 @@
 <script src="random-color.js"></script>
 <script src="numbers.js"></script>
 <script type="text/javascript">
-steal('can', 'can/view/stache', 'list', function () {
-    var numbers = new can.List();
+steal('can', 'list', 'can/view/stache', function (can, List) {
+    var numbers = new List();
 
     $('#demo').append(can.view('main-template', {
       lists: [

@@ -4,14 +4,14 @@
   "description": "Derive a list/map from another via live binding",
   "main": "derive.js",
   "dependencies": {
-    "can": "git://github.com/bitovi/canjs.git#todomvc-and-can-derive",
+    "can": "git://github.com/bitovi/canjs.git#minor",
     "can-redblacktree": "git://github.com/akagomez/can-redblacktree.git"
   },
   "devDependencies": {
-    "serve": "^1.4.0",
-    "steal": "^0.10.1",
+    "serve": "1.4.0",
+    "steal": "0.10.1",
     "steal-qunit": "0.0.2",
-    "system-npm": "^0.3.0"
+    "system-npm": "0.3.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

@@ -18,11 +18,15 @@ dirtyAlphabet.splice(27, 0, 0);
 var equalValues = function (list, expectedValues) {
     var match = true;
     var foo = arguments[0];
+
+    if (list.length !== expectedValues.length) {
+        return false;
+    }
+
     list.each(function (item, index) {
         if (item !== expectedValues[index]) {
             match = false;
         }
-        strictEqual(item, expectedValues[index], 'Items match');
     });
 
     return match;
@@ -34,11 +38,11 @@ test('Method exists', function () {
 
 test('Derives initial values', function () {
 
-    var source = new can.List(dirtyAlphabet);
     var filterFn = function (value, index) {
         return value ? true : false;
     };
-    var expected = dirtyAlphabet.slice().filter(filterFn);
+    var source = new List(dirtyAlphabet);
+    var expected = dirtyAlphabet.filter(filterFn);
     var derived = source.filter(filterFn);
 
     ok(equalValues(derived, expected), 'Initial values are correct');
@@ -47,8 +51,9 @@ test('Derives initial values', function () {
 test('Changes to source list are synced to their derived list', function () {
 
     var alphabet = dirtyAlphabet.slice();
-    var source = new can.List(alphabet);
-    var filterFn = function (value, index) { return value ? true : false; };
+    var filterFn = function (value) { return value ? true : false; };
+    var source = new List(alphabet);
+
     var derived = source.filter(filterFn);
     var expected;
 
@@ -74,8 +79,8 @@ test('Changes to source list are synced to their derived list', function () {
 test('Items added to a source list get added to their derived list', function () {
 
     var alphabet = dirtyAlphabet.slice();
-    var source = new can.List(alphabet);
-    var filterFn = function (value, index) { return value ? true : false; };
+    var filterFn = function (value) { return value ? true : false; };
+    var source = new List(alphabet);
     var derived = source.filter(filterFn);
     var expected;
 
@@ -110,8 +115,8 @@ test('Items added to a source list get added to their derived list', function ()
 
 test('Items removed from a source list are removed from their derived list', function () {
     var alphabet = dirtyAlphabet.slice();
-    var source = new can.List(alphabet);
-    var filterFn = function (value, index) { return value ? true : false; };
+    var filterFn = function (value) { return value ? true : false; };
+    var source = new List(alphabet);
     var derived = source.filter(filterFn);
     var expected;
 
@@ -139,8 +144,8 @@ test('Items removed from a source list are removed from their derived list', fun
 
 test('Predicate function can be bound to source index', function () {
     var alphabet = dirtyAlphabet.slice();
-    var source = new can.List(alphabet);
     var filterFn = function (value, index) { return index % 2 === 0; };
+    var source = new List(alphabet);
     var derived = source.filter(filterFn);
     var expected = alphabet.filter(filterFn);
 
@@ -198,6 +203,120 @@ test('Predicate function can be bound to source index', function () {
 
 });
 
-test('Is chainable', function () {
+test('Can derive a filtered list from a filtered list', function () {
+    var letterCollection = [];
+    var total = 4; // 40, because it's evenly divisible by 4
 
-})
+    // Generate values
+    for (var i = 0; i < total; i++) {
+        letterCollection.push(letters[i]);
+    }
+
+    // Half filters
+    var makeFilterFn = function (predicate) {
+        return function (value, index, collection) {
+            var length = collection.attr ?
+                collection.attr('length') :
+                collection.length;
+
+            var middleIndex = Math.round(length / 2);
+
+            return predicate(index, middleIndex);
+        }
+    }
+
+    var firstHalfFilter = makeFilterFn(function (a, b) { return a < b; });
+    var secondHalfFilter = makeFilterFn(function (a, b) { return a >= b; });
+
+    var source = new List(letterCollection);
+
+    // Filter the whole collection into two separate lists
+    var derivedFirstHalf = source.filter(firstHalfFilter);
+    var derivedSecondHalf = source.filter(secondHalfFilter);
+
+    // Filter the two lists into four additional lists
+    var derivedFirstQuarter = derivedFirstHalf.filter(firstHalfFilter);
+    var derivedSecondQuarter = derivedFirstHalf.filter(secondHalfFilter);
+    var derivedThirdQuarter = derivedSecondHalf.filter(firstHalfFilter);
+    var derivedFourthQuarter = derivedSecondHalf.filter(secondHalfFilter);
+
+    var evaluate = function () {
+        // Recreate the halfed/quartered lists using native .filter()
+        var expectedFirstHalf = letterCollection.filter(firstHalfFilter);
+        var expectedSecondHalf = letterCollection.filter(secondHalfFilter);
+        var expectedFirstQuarter = expectedFirstHalf.filter(firstHalfFilter);
+        var expectedSecondQuarter = expectedFirstHalf.filter(secondHalfFilter);
+        var expectedThirdQuarter = expectedSecondHalf.filter(firstHalfFilter);
+        var expectedFourthQuarter = expectedSecondHalf.filter(secondHalfFilter);
+
+        ok(equalValues(derivedFirstHalf, expectedFirstHalf), '1st half matches expected');
+        ok(equalValues(derivedSecondHalf, expectedSecondHalf), '2nd half matches expected');
+        ok(equalValues(derivedFirstQuarter, expectedFirstQuarter), '1st quarter matches expected');
+        ok(equalValues(derivedSecondQuarter, expectedSecondQuarter), '2nd quarter matches expected');
+        ok(equalValues(derivedThirdQuarter, expectedThirdQuarter), '3rd quarter matches expected');
+        ok(equalValues(derivedFourthQuarter, expectedFourthQuarter), '4th quarter matches expected');
+    }
+
+    // Initial values
+    evaluate();
+
+    // Insert
+    source.push(letters[total]);
+    letterCollection.push(letters[total]);
+    evaluate();
+
+    // Remove
+    source.shift();
+    letterCollection.shift();
+    evaluate();
+});
+
+test('Derived list fires add/remove/length events', function () {
+    var filterFn = function (value, index) {
+        return value ? true : false;
+    };
+    var alphabet = dirtyAlphabet.slice();
+    var source = new List(dirtyAlphabet);
+    var expected = alphabet.filter(filterFn);
+    var derived = source.filter(filterFn);
+
+    derived.bind('add', function (ev, added, offset) {
+        ok(true, '"add" event fired');
+        // NOTE: Use deepEqual to compare values, not list instances
+        deepEqual(added, ['ZZ'], 'Correct newVal passed to "add" handler');
+    });
+
+    derived.bind('remove', function (ev, removed, offset) {
+        ok(true, '"remove" event fired');
+        // NOTE: Use deepEqual to compare values, not list instances
+        deepEqual(removed, ['D'], 'Correct oldVal passed to "remove" handler');
+    });
+
+    derived.bind('length', function (ev, newVal) {
+        ok('"length" event fired');
+        equal(newVal, expected.length, 'Correct newVal passed to "length" handler');
+    });
+
+    // Add
+    alphabet.splice(alphabet.length - 1, 0, 'ZZ');
+    expected = alphabet.filter(filterFn);
+    source.splice(source.length - 1, 0, 'ZZ');
+
+    // Remove
+    alphabet.splice(4, 1);
+    expected = alphabet.filter(filterFn);
+    source.splice(4, 1);
+});
+
+test('Can iterate initial values', function () {
+    var filterFn = function (value, index) {
+        return value ? true : false;
+    };
+    var source = new List(dirtyAlphabet);
+    var expected = dirtyAlphabet.filter(filterFn);
+    var derived = source.filter(filterFn);
+
+    derived.each(function (value, index) {
+        equal(value, expected[index], 'Iterated value matches expected value');
+    });
+});
