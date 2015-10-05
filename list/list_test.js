@@ -1,5 +1,5 @@
+var can = require('can');
 var QUnit = require("steal-qunit");
-var Map = require("../map/map");
 var List = require("./list");
 
 QUnit.module('.filter()', {

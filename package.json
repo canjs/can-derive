@@ -2,10 +2,10 @@
   "name": "can-derive",
   "version": "0.0.1",
   "description": "Derive a list/map from another via live binding",
-  "main": "derive.js",
+  "main": "index.js",
   "dependencies": {
     "can": "git://github.com/bitovi/canjs.git#minor",
-    "can-redblacktree": "git://github.com/akagomez/can-redblacktree.git"
+    "can-binarytree": "git://github.com/akagomez/can-binarytree.git"
   },
   "devDependencies": {
     "serve": "1.4.0",

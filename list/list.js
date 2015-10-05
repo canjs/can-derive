@@ -1,11 +1,11 @@
 var can = require('can/util/util');
 var Map = require('can/map/map');
 var List = require('can/list/list');
-var TreeList = require('can-redblacktree');
+var RBTreeList = require('can-binarytree').RBTreeList;
 
 // Use a tree so that items are sorted by the source list's
 // index in O(log(n)) time
-var DerivedList = TreeList.extend({
+var DerivedList = RBTreeList.extend({
 
     // A flag that determines if index influencing operations like shift
     // and splice should result in O(n) index compute updates
@@ -37,7 +37,7 @@ var DerivedList = TreeList.extend({
         this._source = sourceList;
 
         // Setup the tree
-        TreeList.prototype.init.apply(this, args.slice(1));
+        RBTreeList.prototype.init.apply(this, args.slice(1));
 
         // Make this list a reflection of the source list
         this.syncAdds();
@@ -293,7 +293,7 @@ var FilteredList = DerivedList.extend({
 
     // Iterate over the value computes' values instead of the node's data
     each: function (callback) {
-        TreeList.prototype.each.call(this, function (node, i) {
+        RBTreeList.prototype.each.call(this, function (node, i) {
             return callback(node.data.value(), i);
         });
     },
@@ -315,7 +315,7 @@ var FilteredList = DerivedList.extend({
         });
 
         // Emit the event without any Node's as new/old values
-        TreeList.prototype._triggerChange.apply(this, arguments);
+        RBTreeList.prototype._triggerChange.apply(this, arguments);
     }
 });
 
