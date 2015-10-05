@@ -308,7 +308,7 @@ test('Derived list fires add/remove/length events', function () {
     source.splice(4, 1);
 });
 
-test('Can iterate initial values', function () {
+test('Can iterate initial values with .each()', function () {
     var filterFn = function (value, index) {
         return value ? true : false;
     };
@@ -318,5 +318,18 @@ test('Can iterate initial values', function () {
 
     derived.each(function (value, index) {
         equal(value, expected[index], 'Iterated value matches expected value');
+    });
+});
+
+test('.attr([index]) returns correct values', function () {
+    var filterFn = function (value, index) {
+        return value ? true : false;
+    };
+    var source = new List(dirtyAlphabet);
+    var expected = dirtyAlphabet.filter(filterFn);
+    var derived = source.filter(filterFn);
+
+    expected.forEach(function (expectedValue, index) {
+        equal(derived.attr(index), expectedValue, 'Read value matches expected value');
     });
 });

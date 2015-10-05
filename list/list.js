@@ -193,6 +193,10 @@ var FilteredList = DerivedList.extend({
             this._indexBound = true;
         }
 
+        // Set the default comparator value normalize method to use
+        // the source tree
+        this._normalizeComparatorValue = this._getNodeIndexFromSource;
+
         // Setup bindings, initialize the tree
         DerivedList.prototype.init.call(this, sourceList);
     },
@@ -224,9 +228,24 @@ var FilteredList = DerivedList.extend({
         return a === b ? 0 : a < b ? -1 : 1; // ASC
     },
 
-    _normalizeComparatorValue: function (value) {
+    _normalizeComparatorValue: function () {
+        throw new Error(
+            'A method must be provided to normalize comparator values');
+    },
+
+    // Use a function that refers to this tree when the comparator
+    // is passed a node
+    _getNodeIndexFromSource: function (value) {
         return value instanceof this.Node ?
             this._source.indexOfNode(value.data.node) :
+            value;
+    },
+
+    // Use a function that refers to the source tree when the comparator
+    // is passed a node
+    _getNodeIndexFromSelf: function (value) {
+        return value instanceof this.Node ?
+            this.indexOfNode(value) :
             value;
     },
 
@@ -298,7 +317,25 @@ var FilteredList = DerivedList.extend({
         });
     },
 
-    // The default TreeList add/remove/pre-remove events pass the Node
+
+    __get: function () {
+
+        // Compare the passed index against the index of items in THIS tree
+        this._normalizeComparatorValue = this._getNodeIndexFromSelf;
+
+        var result = RBTreeList.prototype.__get.apply(this, arguments);
+
+        // Revert back to the default behavior, which is to compare the passed
+        // index against the index of items in the SOURCE tree
+        this._normalizeComparatorValue = this._getNodeIndexFromSource;
+
+        if (result instanceof this.Node) {
+            result = result.data.value();
+        }
+        return result;
+    },
+
+    // The default RBTreeList add/remove/pre-remove events pass the Node
     // as the newVal/oldVal, but the derived list is publicly consumed by
     // lots of things that think it's can.List-like; Instead dispatch the
     // event with the Node's "value" compute value
