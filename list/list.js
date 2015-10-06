@@ -185,7 +185,7 @@ var FilteredList = DerivedList.extend({
 
         // Overwrite the default predicate if one is provided
         if (predicate) {
-            this.predicate = can.proxy(predicate, predicateContext);
+            this.predicate = can.proxy(predicate, predicateContext || this);
         }
 
         // Mark this derived list as bound to indexes
