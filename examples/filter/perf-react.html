@@ -1,12 +1,11 @@
-<title>React filter</title>
+<title>.filter() perf - React</title>
 
 <div id="demo"></div>
 
 <script src="https://fb.me/react-0.13.3.min.js"></script>
 <!--<script src="https://fb.me/react-0.13.3.js"></script>-->
 <script src="https://fb.me/JSXTransformer-0.13.3.js"></script>
-<script src="./random-color.js"></script>
-<script src="./numbers.js"></script>
+<script src="./common.js"></script>
 
 <script type='text/jsx'>
   var MainTemplate = React.createClass({
@@ -50,10 +49,7 @@
           peak: Math.max(fps, prevState.peak)
         };
       });
-    },
-
-    generateRandomNumber: function() {
-      return Math.ceil(Math.random() * 99);
+      Monitoring.renderRate.ping();
     },
 
     createNumbers: function(count) {
@@ -120,12 +116,12 @@
     }
   });
 
-  var component = React.render(<MainTemplate dice={10000} />, document.getElementById('demo'));
-  requestAnimationFrame(frame);
+  var component = React.render(<MainTemplate dice={window.NUMBER_OF_CIRCLES} />, document.getElementById('demo'));
+  setTimeout(frame, 0);
 
   function frame() {
     component.updateNumbers(true);   // change to false to see fps without updates
-    requestAnimationFrame(frame);
+    setTimeout(frame, 0);
   }
 
 </script>
@@ -154,7 +150,6 @@ td:last-child {
     padding-bottom: 10px;
 }
 .circle {
-    display: none;
     float: left;
     width: 30px;
     height: 30px;
