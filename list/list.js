@@ -318,12 +318,12 @@ var FilteredList = DerivedList.extend({
     },
 
 
-    __get: function () {
+    ___get: function () {
 
         // Compare the passed index against the index of items in THIS tree
         this._normalizeComparatorValue = this._getNodeIndexFromSelf;
 
-        var result = RBTreeList.prototype.__get.apply(this, arguments);
+        var result = RBTreeList.prototype.___get.apply(this, arguments);
 
         // Revert back to the default behavior, which is to compare the passed
         // index against the index of items in the SOURCE tree
