@@ -1,4 +1,4 @@
-<title>.filter() perf - can-derive</title>
+<title>.filter() perf - can</title>
 
 <div id="demo"></div>
 
@@ -21,10 +21,10 @@
 <script src="../../node_modules/steal/steal.js"></script>
 <script src="./common.js"></script>
 <script type="text/javascript">
-steal('list', 'can', 'can/view/stache', function (List) {
+steal('can', 'can/view/stache', 'can/map/define', function () {
     var DO_UPDATE = true;  // change to false to see fps without update
 
-    var numbers = new List();
+    var numbers = new can.List();
     var stats = new can.Map({ fps: 0, peak: -Infinity });
     var lastTick = 0;
     var frames = 0;
@@ -46,11 +46,11 @@ steal('list', 'can', 'can/view/stache', function (List) {
 
     setTimeout(frame, 0);
 
-    can.batch.start();
-    window.requestAnimationFrame(function() {
-      can.batch.stop(true, true);
-      window.requestAnimationFrame(arguments.callee);
-    });
+    // can.batch.start();
+    // window.requestAnimationFrame(function() {
+    //   can.batch.stop(true, true);
+    //   window.requestAnimationFrame(arguments.callee);
+    // });
 
     function frame() {
       var now = performance.now();
@@ -81,6 +81,67 @@ steal('list', 'can', 'can/view/stache', function (List) {
       numbers.attr(i).attr('number', newNum);
     }
 
+    var First = can.Map.extend({
+        define: {
+            label: {
+                value: 'Even'
+            },
+            numbers: {
+                value: [],
+                get: function (initialValue) {
+                    return initialValue.replace(numbers.filter(function (number) {
+                        return number.attr('number') % 2 === 0;
+                    }));
+                }
+            }
+        }
+    });
+    var Second = can.Map.extend({
+        define: {
+            label: {
+                value: 'Odd'
+            },
+            numbers: {
+                value: [],
+                get: function (initialValue) {
+                    return initialValue.replace(numbers.filter(function (number) {
+                        return number.attr('number') % 2 !== 0;
+                    }));
+                }
+            }
+        }
+    });
+    var Third = can.Map.extend({
+        define: {
+            label: {
+                value: '< 50'
+            },
+            numbers: {
+                value: [],
+                get: function (initialValue) {
+                    return initialValue.replace(numbers.filter(function (number) {
+                        return number.attr('number') <= 50;
+                    }));
+                }
+            }
+        }
+    });
+    var Fourth = can.Map.extend({
+        define: {
+            label: {
+                value: '> 50'
+            },
+            numbers: {
+                value: [],
+                get: function (initialValue) {
+                    return initialValue.replace(numbers.filter(function (number) {
+                        return number.attr('number') >= 50;
+                    }));
+                }
+            }
+        }
+    });
+
     $('#demo').append(can.view('main-template', {
     // ((noRender = {
       stats: stats,
@@ -89,30 +150,10 @@ steal('list', 'can', 'can/view/stache', function (List) {
             label: 'Source',
             numbers: numbers
         },
-        {
-            label: 'Even',
-            numbers: numbers.filter(function (number) {
-                return number.attr('number') % 2 === 0;
-            })
-        },
-        {
-            label: 'Odd',
-            numbers: numbers.filter(function (number) {
-                return number.attr('number') % 2 !== 0;
-            })
-        },
-        {
-            label: '< 50',
-            numbers: numbers.filter(function (number) {
-                return number.attr('number') <= 50;
-            })
-        },
-        {
-            label: '> 50',
-            numbers: numbers.filter(function (number) {
-                return number.attr('number') >= 50;
-            })
-        }
+        new First(),
+        new Second(),
+        new Third(),
+        new Fourth()
     ]}));
 
 });

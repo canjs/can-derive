@@ -89,6 +89,7 @@
 
     render: function() {
       var lists = this.deriveLists(this.state.numbers);
+      // return (<div></div>); // noRender
       var rows = lists.map(function(list) {
         var numbers = list.numbers.map(function(n) {
           var style = { backgroundColor: n.hex };
