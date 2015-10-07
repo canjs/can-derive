@@ -1,4 +1,4 @@
-var List = require('list');
+var List = require('list/list');
 
 module.exports = {
     List: List
