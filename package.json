@@ -11,11 +11,27 @@
     "serve": "1.4.0",
     "steal": "0.10.1",
     "steal-qunit": "0.0.2",
-    "system-npm": "0.3.0"
+    "steal-tools": "^0.11.0-pre.9",
+    "system-npm": "0.3.0",
+    "testee": "0.2.0"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "serve -p 8080"
+    "start": "serve -p 8080",
+    "preversion": "npm test && npm run build",
+    "version": "git commit -am \"Update dist for release\" && git checkout -b release && git add -f dist/",
+    "postversion": "git push --tags && git checkout master && git branch -D release && git push",
+    "release:patch": "npm version patch && npm publish",
+    "release:minor": "npm version minor && npm publish",
+    "release:major": "npm version major && npm publish",
+    "jshint": "jshint src/. --config",
+    "testee": "testee list/test.html --browsers chrome",
+    "test": "npm run testee",
+    "build": "node build.js"
+  },
+  "system": {
+    "npmIgnore": [
+      "testee"
+    ]
   },
   "keywords": [
     "CanJS"
