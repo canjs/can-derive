@@ -38,9 +38,7 @@ test('Method exists', function () {
 
 test('Derives initial values', function () {
 
-    var filterFn = function (value, index) {
-        return value ? true : false;
-    };
+    var filterFn = function (value, index) { return value ? true : false; };
     var source = new List(dirtyAlphabet);
     var expected = dirtyAlphabet.filter(filterFn);
     var derived = source.filter(filterFn);
