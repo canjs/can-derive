@@ -78,9 +78,6 @@ var DerivedList = RBTreeList.extend({
         var ___set = this._source.___set;
         this._source.___set = function (index, value) {
 
-            // Cast as a number
-            index = +index;
-
             // Get a reference to the "computes" object
             var computes = self.get(index).data;
 
