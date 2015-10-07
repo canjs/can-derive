@@ -1,11 +1,13 @@
-var can = require('can/util/util');
-var Map = require('can/map/map');
 var List = require('can/list/list');
 var RBTreeList = require('can-binarytree').RBTreeList;
+var DerivedList, FilteredList;
+
+require('can/compute/compute');
+require('can/util/util');
 
 // Use a tree so that items are sorted by the source list's
 // index in O(log(n)) time
-var DerivedList = RBTreeList.extend({
+DerivedList = RBTreeList.extend({
 
     // A flag that determines if index influencing operations like shift
     // and splice should result in O(n) index compute updates
@@ -30,7 +32,6 @@ var DerivedList = RBTreeList.extend({
 
     init: function (sourceList) {
 
-        var self = this;
         var args = can.makeArray(arguments);
 
         // Save a reference to the list we're deriving
@@ -147,7 +148,6 @@ var DerivedList = RBTreeList.extend({
 
     removeItems: function (items, offset) {
         var self = this;
-        var iterator, lastRemovedIndex;
 
         // Remove each item
         can.each(items, function (item, i) {
@@ -176,7 +176,7 @@ var DerivedList = RBTreeList.extend({
 
 // Handle the adding/removing of items to the derived list based on
 // the predicate
-var FilteredList = DerivedList.extend({
+FilteredList = DerivedList.extend({
 
     init: function (sourceList, predicate, predicateContext) {
 
@@ -261,7 +261,7 @@ var FilteredList = DerivedList.extend({
         // Determine whether to include or not
         var include = can.compute(function () {
 
-            var index, result, sourceCollection, value;
+            var index, sourceCollection, value;
 
             // Ensure first change event's "oldVal" is `false`
             if (! initialized()) { return false; }
@@ -345,7 +345,7 @@ var FilteredList = DerivedList.extend({
                 if (value instanceof nodeConstructor) {
                     newOrOldValues[index] = value.data.value();
                 }
-            })
+            });
         });
 
         // Emit the event without any Node's as new/old values

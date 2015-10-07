@@ -1,4 +1,3 @@
-var can = require('can');
 var QUnit = require("steal-qunit");
 var List = require("./list");
 
@@ -17,7 +16,6 @@ dirtyAlphabet.splice(27, 0, 0);
 
 var equalValues = function (list, expectedValues) {
     var match = true;
-    var foo = arguments[0];
 
     if (list.length !== expectedValues.length) {
         return false;
@@ -220,8 +218,8 @@ test('Can derive a filtered list from a filtered list', function () {
             var middleIndex = Math.round(length / 2);
 
             return predicate(index, middleIndex);
-        }
-    }
+        };
+    };
 
     var firstHalfFilter = makeFilterFn(function (a, b) { return a < b; });
     var secondHalfFilter = makeFilterFn(function (a, b) { return a >= b; });
@@ -253,7 +251,7 @@ test('Can derive a filtered list from a filtered list', function () {
         ok(equalValues(derivedSecondQuarter, expectedSecondQuarter), '2nd quarter matches expected');
         ok(equalValues(derivedThirdQuarter, expectedThirdQuarter), '3rd quarter matches expected');
         ok(equalValues(derivedFourthQuarter, expectedFourthQuarter), '4th quarter matches expected');
-    }
+    };
 
     // Initial values
     evaluate();

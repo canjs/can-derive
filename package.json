@@ -8,6 +8,7 @@
     "can-binarytree": "git://github.com/akagomez/can-binarytree.git"
   },
   "devDependencies": {
+    "jshint": "^2.7.0",
     "serve": "1.4.0",
     "steal": "0.10.1",
     "steal-qunit": "0.0.2",
@@ -23,8 +24,8 @@
     "release:patch": "npm version patch && npm publish",
     "release:minor": "npm version minor && npm publish",
     "release:major": "npm version major && npm publish",
-    "jshint": "jshint src/. --config",
-    "testee": "testee list/test.html --browsers chrome",
+    "jshint": "jshint list/. --config",
+    "testee": "testee list/test.html --browsers phantom",
     "test": "npm run testee",
     "build": "node build.js"
   },
