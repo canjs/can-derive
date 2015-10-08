@@ -359,4 +359,8 @@ var FilterPluginList = List.extend({
     filter: DerivedList.prototype.filter
 });
 
+if (typeof window !== 'undefined' && !require.resolve && window.can) {
+    window.can.DeriveList = FilterPluginList;
+}
+
 module.exports = FilterPluginList;
