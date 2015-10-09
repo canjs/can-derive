@@ -30,30 +30,49 @@ DerivedList = RBTreeList.extend({
         return filteredList;
     },
 
-    init: function (sourceList) {
+    init: function (sourceList, initializeWithoutItems) {
 
-        var args = can.makeArray(arguments);
+        var self = this;
+        var initArgs = [];
+        var initializeWithItems = !initializeWithoutItems;
 
         // Save a reference to the list we're deriving
         this._source = sourceList;
 
+        // Don't populate the tree with the items initially passed
+        // to the constructor
+        if (initializeWithItems) {
+            var initialItems = [];
+
+            can.each(sourceList, function (value, index) {
+                initialItems[index] = self.convertItemToCompute(value, index);
+            });
+
+            initArgs[0] = initialItems;
+            initArgs[1] = function (index, node) {
+                initialItems[index].node = node;
+            }
+        }
+
         // Setup the tree
-        RBTreeList.prototype.init.apply(this, args.slice(1));
+        RBTreeList.prototype.init.apply(this, initArgs);
 
         // Make this list a reflection of the source list
-        this.syncAdds();
+        this.syncAdds(! initializeWithItems);
         this.syncRemoves();
         this.syncValues();
     },
 
-    syncAdds: function () {
+    syncAdds: function (addInitialItems) {
 
         var self = this;
 
-        // Add initial items
-        this._source.each(function (item, index) {
-            self.addItem(item, index);
-        });
+        if (addInitialItems) {
+            // Add initial items
+            this._source.each(function (item, index) {
+                self.addItem(item, index);
+            });
+        }
 
         // Add future items
         this._source.bind('add', function (ev, items, offset) {
@@ -103,10 +122,7 @@ DerivedList = RBTreeList.extend({
     addItem: function (item, insertIndex) {
         var node;
 
-        // Store information in a way that changes can be bound to
-        var computes = {};
-        computes.index = can.compute(insertIndex);
-        computes.value = can.compute(item);
+        var computes = this.convertItemToCompute.apply(this, arguments);
 
         // Don't dispatch the resulting "add" event until a reference
         // to the node has been saved to the `computes` object
@@ -116,6 +132,14 @@ DerivedList = RBTreeList.extend({
         can.batch.stop();
 
         this.propagateIndexAdjustment(insertIndex + 1);
+    },
+
+    convertItemToCompute: function (item, insertIndex) {
+        // Store information in a way that changes can be bound to
+        var computes = {};
+        computes.index = can.compute(insertIndex);
+        computes.value = can.compute(item);
+        return computes;
     },
 
     propagateIndexAdjustment: function (affectedIndex) {
@@ -194,8 +218,9 @@ FilteredList = DerivedList.extend({
         // the source tree
         this._normalizeComparatorValue = this._getNodeIndexFromSource;
 
-        // Setup bindings, initialize the tree
-        DerivedList.prototype.init.call(this, sourceList);
+        // Setup bindings, initialize the tree (but don't populate the tree
+        // with the items passed to the constructor)
+        DerivedList.prototype.init.apply(this, [sourceList, true]);
     },
 
     // A filtered list's source list is a derived list (the derived list stores

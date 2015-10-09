@@ -30,14 +30,13 @@ window.makePredicateFn = function (needle) {
 
 window.makePopulateDerivedListFn = function (numberOfItems) {
     return function () {
+        var values = window.makeArray(numberOfItems);
 
-        var source = new can.DeriveList();
+        var source = new can.DeriveList(values);
         var needle = window.makeItem(numberOfItems - 1);
         var predicateFn = window.makePredicateFn(needle);
         var filtered = source.filter(predicateFn);
         source._filtered = filtered;
-
-        source.push.apply(source, window.makeArray(numberOfItems));
 
         if (filtered.attr('length') !== 1) { throw new Error('Abort'); }
 
