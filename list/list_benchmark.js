@@ -49,13 +49,13 @@ window.makeUpdateDerivedListFn = function (numberOfItems) {
 
         var source = window['sourceListWithLength' + numberOfItems];
 
-        // // Change the value so that it passes the filter
-        source.attr(0, window.makeItem(numberOfItems - 1));
+        // Change the value so that it passes the filter
+        source.attr('0.id', (numberOfItems - 1).toString(16));
 
         if (source._filtered.attr('length') !== 2) { throw new Error('Abort'); }
 
-        // // Change it back so that it's ready for the next test
-        source.attr(0, window.makeItem(0));
+        // Change it back so that it's ready for the next test
+        source.attr('0.id', '0');
 
         if (source._filtered.attr('length') !== 1) { throw new Error('Abort'); }
     }
