@@ -280,19 +280,14 @@ FilteredList = DerivedList.extend({
         var self = this;
         var computes = node.data;
 
-        // Default to false
-        var initialized = can.compute(false);
-
-        // Determine whether to include or not
-        var include = can.compute(function () {
+        // Determine whether to include this item in the tree or not
+        var predicateResult = can.compute(function () {
 
             var index, sourceCollection, value;
 
-            // Ensure first change event's "oldVal" is `false`
-            if (! initialized()) { return false; }
-
             value = computes.value();
             sourceCollection = this._source._source;
+
 
             // If the user has provided a predicate function that depends
             // on the index argument, bind to it directly; Everything's O(n)
@@ -313,19 +308,28 @@ FilteredList = DerivedList.extend({
             return this.predicate(value, index, sourceCollection);
         }, this);
 
-        // Add/remove based predicate change
-        include.bind('change', function (ev, newVal, oldVal) {
-            var sourceIndex = self._source.indexOfNode(computes.node);
 
-            if (newVal) {
-                self.set(sourceIndex, computes, true);
-            } else {
-                self.unset(sourceIndex, true);
-            }
+        // Listen to changes on the predicate result
+        predicateResult.bind('change', function (ev, newVal, oldVal) {
+            self._applyPredicateResult(computes, newVal);
         });
 
-        // Trigger an "include" `change` event
-        initialized(true);
+        // Apply the initial predicate result only if it's true
+        // because there is a smidge of overhead involved in getting
+        // the source index
+        if (predicateResult()) {
+            this._applyPredicateResult(computes, true);
+        }
+    },
+
+    _applyPredicateResult: function (computes, newVal) {
+        var sourceIndex = this._source.indexOfNode(computes.node);
+
+        if (newVal) {
+            this.set(sourceIndex, computes, true);
+        } else {
+            this.unset(sourceIndex, true);
+        }
     },
 
     removeItem: function (item, sourceIndex) {
