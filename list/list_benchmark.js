@@ -29,15 +29,17 @@ window.makePredicateFn = function (needle) {
 };
 
 window.makePopulateDerivedListFn = function (numberOfItems) {
-    return function () {
-        var values = window.makeArray(numberOfItems);
 
-        var source = new can.DeriveList(values);
-        var needle = window.makeItem(numberOfItems - 1);
-        var predicateFn = window.makePredicateFn(needle);
+    var values = window.makeArray(numberOfItems);
+    var source = new can.DeriveList(values);
+    var needle = window.makeItem(numberOfItems - 1);
+    var predicateFn = window.makePredicateFn(needle);
+    source.filter(can.noop);
+
+    return function () {
+
         var filtered = source.filter(predicateFn);
         source._filtered = filtered;
-
         if (filtered.attr('length') !== 1) { throw new Error('Abort'); }
 
         return source;
