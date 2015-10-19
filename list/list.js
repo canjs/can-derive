@@ -280,44 +280,19 @@ FilteredList = DerivedList.extend({
         var self = this;
         var computes = node.data;
 
-        // Determine whether to include this item in the tree or not
-        var predicateResult = can.compute(function () {
-
-            var index, sourceCollection, value;
-
-            value = computes.value();
-            sourceCollection = this._source._source;
-
-
-            // If the user has provided a predicate function that depends
-            // on the index argument, bind to it directly; Everything's O(n)
-            // from here on out (for this particular derived list)
-            if (this._indexBound) {
-                index = computes.index();
-            }
-
-            // If the user has provided a predicate function that depends
-            // on the source collection, bind to length changes so that
-            // the `include` compute will be re-evaluated
-            if (this.predicate.length > 2) {
-                sourceCollection.attr('length');
-            }
-
-            // Use the predicate function to determine if this
-            // item should be included in the overall list
-            return this.predicate(value, index, sourceCollection);
-        }, this);
-
+        var filteredItem = new FilteredItem(this._source._source, this, computes);
 
         // Listen to changes on the predicate result
-        predicateResult.bind('change', function (ev, newVal, oldVal) {
+        filteredItem.predicateResult.bind('change', function (ev, newVal, oldVal) {
             self._applyPredicateResult(computes, newVal);
         });
+
+        var res = filteredItem.predicateResult();
 
         // Apply the initial predicate result only if it's true
         // because there is a smidge of overhead involved in getting
         // the source index
-        if (predicateResult()) {
+        if (res) {
             this._applyPredicateResult(computes, true);
         }
     },
@@ -381,6 +356,41 @@ FilteredList = DerivedList.extend({
         RBTreeList.prototype._triggerChange.apply(this, arguments);
     }
 });
+
+var FilteredItem = function (sourceCollection, tree, computes) {
+    this.tree = tree;
+    this.computes = computes;
+    this.sourceCollection = sourceCollection;
+    this.predicateResult = can.compute(this.predicateResultFn, this);
+}
+
+// Determine whether to include this item in the tree or not
+FilteredItem.prototype.predicateResultFn = function () {
+
+    var index, sourceCollection, value;
+
+    value = this.computes.value();
+    sourceCollection = this.sourceCollection;
+
+    // If the user has provided a predicate function that depends
+    // on the index argument, bind to it directly; Everything's O(n)
+    // from here on out (for this particular derived list)
+    if (this._indexBound) {
+        index = this.computes.index();
+    }
+
+    // If the user has provided a predicate function that depends
+    // on the source collection, bind to length changes so that
+    // the `include` compute will be re-evaluated
+    if (this.tree.predicate.length > 2) {
+        sourceCollection.attr('length');
+    }
+
+    // Use the predicate function to determine if this
+    // item should be included in the overall list
+    return this.tree.predicate(value, index, sourceCollection);
+};
+
 
 // Overwrite the default `.filter()` method with our derived list filter
 // method
