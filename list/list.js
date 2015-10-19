@@ -103,7 +103,7 @@ DerivedList = RBTreeList.extend({
 
             if (computes) {
                 // Update the value, thus triggering a `change` event
-                computes.value(value);
+                computes.value.set(value);
             }
 
             // Continue the `set` on the source list
@@ -137,8 +137,8 @@ DerivedList = RBTreeList.extend({
     convertItemToCompute: function (item, insertIndex) {
         // Store information in a way that changes can be bound to
         var computes = {};
-        computes.index = can.compute(insertIndex);
-        computes.value = can.compute(item);
+        computes.index = new can.Compute(insertIndex);
+        computes.value = new can.Compute(item);
         return computes;
     },
 
@@ -163,7 +163,7 @@ DerivedList = RBTreeList.extend({
             // Iterate using the linked-list, it's faster than
             // for (i) { this.get(i); }
             while (node) {
-                node.data.index(i);
+                node.data.index.set(i);
                 node = node.next;
                 i++;
             }
@@ -194,7 +194,7 @@ DerivedList = RBTreeList.extend({
     splice: can.noop,
 
     _printIndexesValue: function (node) {
-        return node.data.value();
+        return node.data.value.get();
     }
 });
 
@@ -287,7 +287,7 @@ FilteredList = DerivedList.extend({
             self._applyPredicateResult(computes, newVal);
         });
 
-        var res = filteredItem.predicateResult();
+        var res = filteredItem.predicateResult.get();
 
         // Apply the initial predicate result only if it's true
         // because there is a smidge of overhead involved in getting
@@ -314,7 +314,7 @@ FilteredList = DerivedList.extend({
     // Iterate over the value computes' values instead of the node's data
     each: function (callback) {
         RBTreeList.prototype.each.call(this, function (node, i) {
-            return callback(node.data.value(), i);
+            return callback(node.data.value.get(), i);
         });
     },
 
@@ -331,7 +331,7 @@ FilteredList = DerivedList.extend({
         this._normalizeComparatorValue = this._getNodeIndexFromSource;
 
         if (result instanceof this.Node) {
-            result = result.data.value();
+            result = result.data.value.get();
         }
         return result;
     },
@@ -347,7 +347,7 @@ FilteredList = DerivedList.extend({
         can.each([newVal, oldVal], function (newOrOldValues) {
             can.each(newOrOldValues, function (value, index) {
                 if (value instanceof nodeConstructor) {
-                    newOrOldValues[index] = value.data.value();
+                    newOrOldValues[index] = value.data.value.get();
                 }
             });
         });
@@ -361,22 +361,21 @@ var FilteredItem = function (sourceCollection, tree, computes) {
     this.tree = tree;
     this.computes = computes;
     this.sourceCollection = sourceCollection;
-    this.predicateResult = can.compute(this.predicateResultFn, this);
+    this.predicateResult = new can.Compute(this.predicateResultFn, this);
 }
 
 // Determine whether to include this item in the tree or not
 FilteredItem.prototype.predicateResultFn = function () {
-
     var index, sourceCollection, value;
 
-    value = this.computes.value();
+    value = this.computes.value.get();
     sourceCollection = this.sourceCollection;
 
     // If the user has provided a predicate function that depends
     // on the index argument, bind to it directly; Everything's O(n)
     // from here on out (for this particular derived list)
-    if (this._indexBound) {
-        index = this.computes.index();
+    if (this.tree._indexBound) {
+        index = this.computes.index.get();
     }
 
     // If the user has provided a predicate function that depends
