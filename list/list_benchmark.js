@@ -30,48 +30,59 @@ window.makePredicateFn = function (needle) {
 
 window.makePopulateDerivedListFn = function (numberOfItems) {
 
-    var values = window.makeArray(numberOfItems);
-    var source = new can.DeriveList(values);
-    var needle = window.makeItem(numberOfItems - 1);
-    var predicateFn = window.makePredicateFn(needle);
-    source.filter(can.noop);
+    return {
+        setup:
+            "var numberOfItems = " + numberOfItems + ";" +
+            "var values = window.makeArray(numberOfItems);" +
+            "var needle = window.makeItem(numberOfItems - 1);" +
+            "var predicateFn = window.makePredicateFn(needle);" +
+            "var source = new can.DeriveList(values);",
 
-    return function () {
-
-        var filtered = source.filter(predicateFn);
-        source._filtered = filtered;
-        if (filtered.attr('length') !== 1) { throw new Error('Abort'); }
-
-        return source;
+        fn: function () {
+            // console.time('fn')
+            var filtered = source.filter(predicateFn);
+            // console.timeEnd('fn')
+            if (filtered.attr('length') !== 1) { throw new Error('Abort'); }
+        },
+        /*onStart: function () {
+            console.profile('populate');
+        },
+        onComplete: function () {
+            console.profileEnd('populate');
+        }*/
     }
 };
 
 window.makeUpdateDerivedListFn = function (numberOfItems) {
-    return function () {
 
-        var source = window['sourceListWithLength' + numberOfItems];
+    return {
+        setup:
+            "var numberOfItems = " + numberOfItems + ";" +
+            "var values = window.makeArray(numberOfItems);" +
+            "var needle = window.makeItem(numberOfItems - 1);" +
+            "var predicateFn = window.makePredicateFn(needle);" +
+            "var source = new can.DeriveList(values);" +
+            "var filtered = source.filter(predicateFn)",
 
-        // Change the value so that it passes the filter
-        source.attr('0.id', (numberOfItems - 1).toString(16));
+        fn: function () {
+            // Change the value so that it passes the filter
+            source.attr('0.id', (numberOfItems - 1).toString(16));
 
-        if (source._filtered.attr('length') !== 2) { throw new Error('Abort'); }
+            if (filtered.attr('length') !== 2) { throw new Error('Abort'); }
 
-        // Change it back so that it's ready for the next test
-        source.attr('0.id', '0');
+            // Change it back so that it's ready for the next test
+            source.attr('0.id', '0');
 
-        if (source._filtered.attr('length') !== 1) { throw new Error('Abort'); }
+            if (filtered.attr('length') !== 1) { throw new Error('Abort'); }
+        }
     }
 };
-
-// Setup some source lists for the update tests
-window.sourceListWithLength10 = makePopulateDerivedListFn(10)();
-window.sourceListWithLength100 = makePopulateDerivedListFn(100)();
-window.sourceListWithLength1000 = makePopulateDerivedListFn(1000)();
 
 benchmark.suite('can.DeriveList.filter')
     .add('Populating a derived list (10 items)', makePopulateDerivedListFn(10))
     .add('Populating a derived list (100 items)', makePopulateDerivedListFn(100))
     .add('Populating a derived list (1000 items)', makePopulateDerivedListFn(1000))
+    .add('Populating a derived list (10000 items)', makePopulateDerivedListFn(10000))
     .add('Updating a derived list (10 items)', makeUpdateDerivedListFn(10))
     .add('Updating a derived list (100 items)', makeUpdateDerivedListFn(100))
     .add('Updating a derived list (1000 items)', makeUpdateDerivedListFn(1000))
