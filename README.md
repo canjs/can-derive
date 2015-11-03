@@ -25,3 +25,5 @@ It does this by:
 - keeping `completed` in a RBTree.
 - listening to when any items are added or removed from the source list.
 - listening to when the predicate function value changes for any item.
+
+The general algorithim was worked out in this [thread](http://cs.stackexchange.com/questions/43447/order-preserving-update-of-a-sublist-of-a-list-of-mutable-objects-in-sublinear-t/44502#44502).
