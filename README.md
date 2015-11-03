@@ -4,7 +4,7 @@
 Derive live can.List and can.Maps from source lists.
 
 
-This support `O(log n)` maintaintence of mapped and filtered `can.List`s.  Basically this means if you setup a
+This supports `O(log n)` maintaintence of mapped and filtered `can.List`s.  Basically this means if you setup a
 derived list like `completed` in the following example:
 
 ```
