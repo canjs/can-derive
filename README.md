@@ -8,7 +8,9 @@ This support `O(log n)` maintaintence of mapped and filtered `can.List`s.  Basic
 derived list like `completed` in the following example:
 
 ```
-var sourceList = new can.List([{name: "dishes", complete: true}, {name: "lawn", complete: false}, ...])
+var sourceList = new can.List([{name: "dishes", complete: true}, 
+                               {name: "lawn", complete: false}, 
+                              ...])
 
 var completed = sourceList.filter(function(todo){
   return todo.attr("complete");
@@ -17,3 +19,9 @@ var completed = sourceList.filter(function(todo){
 
 Any changes to `sourceList` will automatically update the derived `completed` list in O(log n) time.  
 This avoids the standard O(n) times done everywhere else.
+
+It does this by:
+
+- keeping `completed` in a RBTree.
+- listening to when any items are added or removed from the source list.
+- listening to when the predicate function value changes for any item.
