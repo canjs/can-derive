@@ -1,6 +1,7 @@
 var List = require('can/list/list');
 var RBTreeList = require('can-binarytree').RBTreeList;
-var DerivedList, FilteredList;
+var __observe = can.__observe;
+var DerivedList, FilteredList, ObservedPredicate;
 
 require('can/compute/compute');
 require('can/util/util');
@@ -51,7 +52,7 @@ DerivedList = RBTreeList.extend({
             initArgs[0] = initialItems;
             initArgs[1] = function (index, node) {
                 initialItems[index].node = node;
-            }
+            };
         }
 
         // Setup the tree
@@ -194,7 +195,7 @@ DerivedList = RBTreeList.extend({
     splice: can.noop,
 
     _printIndexesValue: function (node) {
-        return node.data.value.get();
+        return node.data.source.value.get();
     }
 });
 
@@ -255,15 +256,15 @@ FilteredList = DerivedList.extend({
             'A method must be provided to normalize comparator values');
     },
 
-    // Use a function that refers to this tree when the comparator
+    // Use a function that refers to the source tree when the comparator
     // is passed a node
     _getNodeIndexFromSource: function (value) {
         return value instanceof this.Node ?
-            this._source.indexOfNode(value.data.node) :
+            this._source.indexOfNode(value.data.source.node) :
             value;
     },
 
-    // Use a function that refers to the source tree when the comparator
+    // Use a function that refers to this tree when the comparator
     // is passed a node
     _getNodeIndexFromSelf: function (value) {
         return value instanceof this.Node ?
@@ -280,28 +281,34 @@ FilteredList = DerivedList.extend({
         var self = this;
         var computes = node.data;
 
-        var filteredItem = new FilteredItem(this._source._source, this, computes);
+        // Setup a compute that will bind to the predicate
+        // function's dependencies
+        var filteredItem = {
+            source: computes,
+            predicate: new ObservedPredicate(this._source._source, this, computes)
+        };
 
         // Listen to changes on the predicate result
-        filteredItem.predicateResult.bind('change', function (ev, newVal, oldVal) {
-            self._applyPredicateResult(computes, newVal);
+        filteredItem.predicate.include.bind('change', function (ev, newVal, oldVal) {
+            self._applyPredicateResult(filteredItem, newVal);
         });
 
-        var res = filteredItem.predicateResult.get();
+        // Get the compute's cached value
+        var res = filteredItem.predicate.include.get();
 
         // Apply the initial predicate result only if it's true
         // because there is a smidge of overhead involved in getting
         // the source index
         if (res) {
-            this._applyPredicateResult(computes, true);
+            this._applyPredicateResult(filteredItem, true);
         }
     },
 
-    _applyPredicateResult: function (computes, newVal) {
-        var sourceIndex = this._source.indexOfNode(computes.node);
+    _applyPredicateResult: function (nodeValue, include) {
+        var sourceIndex = this._source.indexOfNode(nodeValue.source.node);
 
-        if (newVal) {
-            this.set(sourceIndex, computes, true);
+        if (include) {
+            this.set(sourceIndex, nodeValue, true);
         } else {
             this.unset(sourceIndex, true);
         }
@@ -314,7 +321,7 @@ FilteredList = DerivedList.extend({
     // Iterate over the value computes' values instead of the node's data
     each: function (callback) {
         RBTreeList.prototype.each.call(this, function (node, i) {
-            return callback(node.data.value.get(), i);
+            return callback(node.data.source.value.get(), i);
         });
     },
 
@@ -331,7 +338,7 @@ FilteredList = DerivedList.extend({
         this._normalizeComparatorValue = this._getNodeIndexFromSource;
 
         if (result instanceof this.Node) {
-            result = result.data.value.get();
+            result = result.data.source.value.get();
         }
         return result;
     },
@@ -347,7 +354,7 @@ FilteredList = DerivedList.extend({
         can.each([newVal, oldVal], function (newOrOldValues) {
             can.each(newOrOldValues, function (value, index) {
                 if (value instanceof nodeConstructor) {
-                    newOrOldValues[index] = value.data.value.get();
+                    newOrOldValues[index] = value.data.source.value.get();
                 }
             });
         });
@@ -357,19 +364,27 @@ FilteredList = DerivedList.extend({
     }
 });
 
-var FilteredItem = function (sourceCollection, tree, computes) {
+ObservedPredicate = function (sourceCollection, tree, computes) {
     this.tree = tree;
     this.computes = computes;
     this.sourceCollection = sourceCollection;
-    this.predicateResult = new can.Compute(this.predicateResultFn, this);
-}
+
+    this.include = new can.Compute(this.includeFn, this);
+};
 
 // Determine whether to include this item in the tree or not
-FilteredItem.prototype.predicateResultFn = function () {
-    var index, sourceCollection, value;
+ObservedPredicate.prototype.includeFn = function () {
+    var include, index, sourceCollection, value;
 
     value = this.computes.value.get();
     sourceCollection = this.sourceCollection;
+
+    // Enable sloppy map binds
+    __observeMapValues = true;
+
+    // Disregard bindings to the source item because the
+    // source list's change event binding will handle this
+    // __observeException = value;
 
     // If the user has provided a predicate function that depends
     // on the index argument, bind to it directly; Everything's O(n)
@@ -387,9 +402,13 @@ FilteredItem.prototype.predicateResultFn = function () {
 
     // Use the predicate function to determine if this
     // item should be included in the overall list
-    return this.tree.predicate(value, index, sourceCollection);
-};
+    include = this.tree.predicate(value, index, sourceCollection);
 
+    // Turn off sloppy map binds
+    __observeMapValues = false;
+
+    return include;
+};
 
 // Overwrite the default `.filter()` method with our derived list filter
 // method
@@ -397,6 +416,37 @@ var FilterPluginList = List.extend({
     filter: DerivedList.prototype.filter
 });
 
+// Dispatch a `__values` event alongside all other `can.Map` events as
+// a non-recursive alternative to `change` events
+var _triggerChange = can.Map.prototype._triggerChange;
+can.Map.prototype._triggerChange = function (attr, how, newVal, oldVal) {
+    _triggerChange.apply(this, arguments);
+
+    can.batch.trigger(this, {
+        type: '__values',
+        target: this
+    }, [newVal, oldVal]);
+};
+
+// Create an observe function that can be configured remotely to bind
+// differently to maps and children of the source list
+var __observe = can.__observe;
+var __observeMapValues = false;
+var __observeException;
+can.__observe = function (obj, event) {
+
+    if (obj === __observeException) {
+        return;
+    }
+
+    if (__observeMapValues && ! (obj instanceof can.List) &&
+            obj instanceof can.Map) {
+        event = '__values';
+    }
+    __observe.call(this, obj, event);
+}
+
+// Register the modified RBTreeList to the `can` namespace
 if (typeof window !== 'undefined' && !require.resolve && window.can) {
     window.can.DeriveList = FilterPluginList;
 }
