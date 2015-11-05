@@ -233,6 +233,8 @@ test('Can derive a filtered list from a filtered list', function () {
     // Half filters
     var makeFilterFn = function (predicate) {
         return function (value, index, collection) {
+
+            // Handle can.List's and native Array's
             var length = collection.attr ?
                 collection.attr('length') :
                 collection.length;
