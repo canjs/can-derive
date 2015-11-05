@@ -1,4 +1,4 @@
-window.NUMBER_OF_CIRCLES = 500;
+window.NUMBER_OF_CIRCLES = 1000;
 
 window.numbersLib = {
     generateRandomNumber: function () {

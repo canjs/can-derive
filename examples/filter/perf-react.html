@@ -1,7 +1,7 @@
 <title>.filter() perf - React</title>
 
 <div id="demo"></div>
-
+<link rel="stylesheet" href="./style.css" />
 <script src="https://fb.me/react-0.13.3.min.js"></script>
 <!--<script src="https://fb.me/react-0.13.3.js"></script>-->
 <script src="https://fb.me/JSXTransformer-0.13.3.js"></script>
@@ -98,20 +98,17 @@
           );
         });
         return (
-          <tr key={list.label}>
-            <td>{list.label}</td>
-            <td className='circles'>
+          <div className="col" key={list.label}>
+            <h3>{list.label}</h3>
+            <div className='circles'>
               {numbers}
-            </td>
-          </tr>
+            </div>
+          </div>
         );
       });
       return (
-        <div>
-          <p>FPS: {this.state.fps}, Peak: {this.state.peak}</p>
-          <table>
-            {rows}
-          </table>
+        <div className="cols">
+          {rows}
         </div>
       );
     }
@@ -126,39 +123,3 @@
   }
 
 </script>
-
-<style type="text/css">
-html {
-    font-family: sans-serif;
-    font-size: 12px;
-}
-table, tbody, th, tr, td {
-    border-spacing: 0;
-    border-collapse: collapse;
-    font-size: 1em;
-}
-td {
-    vertical-align: top;
-    line-height: 30px;
-    height: 42px;
-}
-
-td:first-child {
-    width: 50px;
-    font-weight: bold;
-}
-td:last-child {
-    padding-bottom: 10px;
-}
-.circle {
-    float: left;
-    width: 30px;
-    height: 30px;
-    margin: 0 2px 1px;
-    text-align: center;
-    line-height: 30px;
-    border-radius: 50%;
-    color: #fff;
-    background-color: #eee;
-}
-</style>
