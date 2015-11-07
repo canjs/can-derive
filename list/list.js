@@ -9,14 +9,14 @@ var _triggerChange, __observeException, __predicateObserve,
     DerivedList, FilteredList, FilterPluginList, ObservedPredicate;
 
 
-// Dispatch a `__values` event alongside all other `can.Map` events as
+// Dispatch a `__modified` event alongside all other `can.Map` events as
 // a non-recursive alternative to `change` events
 _triggerChange = can.Map.prototype._triggerChange;
 can.Map.prototype._triggerChange = function (attr, how, newVal, oldVal) {
     _triggerChange.apply(this, arguments);
 
     can.batch.trigger(this, {
-        type: '__values',
+        type: '__modified',
         target: this
     }, [newVal, oldVal]);
 };
@@ -30,7 +30,7 @@ __predicateObserve = function (obj, event) {
 
     if (__observeAbstractValues && ! (obj instanceof can.List) &&
             obj instanceof can.Map) {
-        event = '__values';
+        event = '__modified';
     }
 
     return __observe.call(this, obj, event);
@@ -123,46 +123,25 @@ DerivedList = RBTreeList.extend({
 
 
     syncValues: function () {
-        var source = this._source;
 
-        // Save a reference to the original `childrenOf`
-        var childrenOf = can.bubble.childrenOf;
+        var tree = this;
 
-        // Prevent binding to changes on the grandchildren of the source
-        can.bubble.childrenOf = function (parent) {
-            if (parent === source) {
-                childrenOf.apply(this, arguments);
+        // Handle future changes in value to existing items
+        var ___set = this._source.___set;
+        this._source.___set = function (index, value) {
+
+            var node = tree.get(index);
+
+            if (node) {
+                node.data.index = index;
+                node.data.value = value;
+                can.batch.trigger(tree, '__nodeModified', [node]);
             }
+
+            // Continue the `set` on the source list
+            return ___set.apply(this, arguments);
         };
-
-        // Bind to "change" events on the source and its
-        // immediate children
-        source.bind('change', can.proxy(this._propagateChange, this));
-
-        // Revert back to default `childrenOf`
-        can.bubble.childrenOf = childrenOf;
     },
-
-    _propagateChange: function (ev, attr, how, val, old) {
-        var dotIndex = (""+attr).indexOf('.');
-        var index = (dotIndex >= 0 ? attr.substr(0, dotIndex) : +attr);
-        var node;
-
-        // TODO: Make this work with child list "add"/"remove" events
-        if (how !== 'set') {
-            return;
-        }
-
-        // Find the node associated with the change at this index
-        node = this.get(index);
-
-        // If the change was to the source list, update our reference
-        if (index === +attr) {
-            node.data.value = val;
-        }
-        can.batch.trigger(this, '__nodes', [node.data]);
-    },
-
 
     addItems: function (items, offset) {
         var self = this;
@@ -189,10 +168,18 @@ DerivedList = RBTreeList.extend({
     },
 
     describeSourceItem: function (item, insertIndex) {
+        var tree = this;
+
         // Store information in a way that changes can be bound to
         var sourceItem = {};
         sourceItem.index = insertIndex;
         sourceItem.value = item;
+
+        if (item.bind) {
+            item.bind('__modified', function () {
+                can.batch.trigger(tree, '__nodeModified', [sourceItem.node]);
+            });
+        }
 
         return sourceItem;
     },
@@ -220,7 +207,7 @@ DerivedList = RBTreeList.extend({
             // `for (i) { this.get(i); }`
             while (node) {
                 node.data.index = i;
-                can.batch.trigger(this, '__nodes', [node.data]);
+                can.batch.trigger(this, '__nodeModified', [node]);
                 node = node.next;
                 i++;
             }
@@ -284,11 +271,12 @@ FilteredList = DerivedList.extend({
     },
 
     syncValues: function () {
-        this._source.bind('__nodes',
+        this._source.bind('__nodeModified',
             can.proxy(this._evaluateIncludeComputeManually, this));
     },
 
-    _evaluateIncludeComputeManually: function (ev, sourceData) {
+    _evaluateIncludeComputeManually: function (ev, node) {
+        var sourceData = node.data;
         var includeCompute = this._includeComputes[sourceData.index];
 
         if (! includeCompute) {
