@@ -1,12 +1,12 @@
-var List = require('can/list/list');
 var RBTreeList = require('can-binarytree').RBTreeList;
+require('can/list/list');
 require('can/compute/compute');
 require('can/util/util');
 
 var __observe = can.__observe;
 var __observeAbstractValues = false;
 var _triggerChange, __observeException, __predicateObserve,
-    DerivedList, FilteredList, FilterPluginList, ObservedPredicate;
+    DerivedList, FilteredList, DerivableList, ObservedPredicate;
 
 
 // Dispatch a `__modified` event alongside all other `can.Map` events as
@@ -485,13 +485,17 @@ ObservedPredicate.prototype.includeFn = function () {
 
 // Overwrite the default `.filter()` method with our derived list filter
 // method
-FilterPluginList = List.extend({
+DerivableList = can.List.extend({
     filter: DerivedList.prototype.filter
 });
 
 // Register the modified RBTreeList to the `can` namespace
 if (typeof window !== 'undefined' && !require.resolve && window.can) {
-    window.can.DeriveList = FilterPluginList;
+    if (! window.can.derive) {
+        window.can.derive = {};
+    }
+
+    can.derive.List = DerivableList;
 }
 
-module.exports = FilterPluginList;
+module.exports = DerivableList;
