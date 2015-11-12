@@ -34,22 +34,22 @@ test('Method exists', function () {
     ok(List.prototype.filter, 'List has filter method');
 });
 
-test('The predicate function re-evaluates when a source item changes', function () {
+test('The predicate function is executed when a source item changes', function () {
 
     var values = [true, true, true];
 
     var source = new List(values);
     var predicateFn = function (item) {
-        return item
-    }
+        return item;
+    };
     var derived = source.filter(predicateFn);
 
     equal(derived.attr('length'), 3, 'Initial length is correct');
 
     derived.predicate = function () {
-        ok(true, 'Predicate should be run for source changes')
+        ok(true, 'Predicate should be run for source changes');
         return predicateFn.apply(this, arguments);
-    }
+    };
 
     source.attr(1, false);
 

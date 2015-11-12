@@ -115,10 +115,7 @@ DerivedList = RBTreeList.extend({
         var self = this;
 
         if (addInitialItems) {
-            // Add initial items
-            this._source.each(function (item, index) {
-                self.addItem(item, index);
-            });
+            this.addItems(this._source, 0);
         }
 
         // Add future items
@@ -142,7 +139,7 @@ DerivedList = RBTreeList.extend({
 
         var tree = this;
 
-        // Handle future changes in value to existing items
+        // Handle the re-assigment of index values
         var ___set = this._source.___set;
         this._source.___set = function (index, value) {
 
@@ -374,7 +371,7 @@ FilteredList = DerivedList.extend({
         var includeCompute = observedPredicate.includeCompute;
 
         // Add the item to the list of computes so that it can be
-        // referenced and called later on a "change" event
+        // referenced and called later if the item is modified
         this._includeComputes.splice(nodeValue.index, 0, includeCompute);
 
         // Listen to changes on the predicate result
