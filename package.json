@@ -16,7 +16,7 @@
     "url": "git://github.com/canjs/can-derive.git"
   },
   "dependencies": {
-    "can": "git://github.com/bitovi/canjs.git#minor",
+    "can": "git://github.com/bitovi/canjs.git#v2.2.9",
     "can-binarytree": "git://github.com/akagomez/can-binarytree.git"
   },
   "devDependencies": {

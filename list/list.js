@@ -61,6 +61,22 @@ DerivedList = RBTreeList.extend({
         return filteredList;
     },
 
+    setup: function () {
+
+        var setupResult = RBTreeList.prototype.setup.apply(this, arguments);
+
+        // CanJS 3.0
+        if (this.___get) {
+            this.___get = this.____get;
+
+        // CanJS 2.2.9
+        } else {
+            this.__get = this.____get;
+        }
+
+        return setupResult;
+    },
+
     init: function (sourceList, initializeWithoutItems) {
 
         var self = this;
@@ -403,20 +419,21 @@ FilteredList = DerivedList.extend({
     },
 
 
-    ___get: function () {
+    ____get: function () {
 
         // Compare the passed index against the index of items in THIS tree
         this._normalizeComparatorValue = this._getNodeIndexFromSelf;
 
-        var result = RBTreeList.prototype.___get.apply(this, arguments);
+        var result = RBTreeList.prototype.____get.apply(this, arguments);
 
         // Revert back to the default behavior, which is to compare the passed
         // index against the index of items in the SOURCE tree
         this._normalizeComparatorValue = this._getNodeIndexFromSource;
 
-        if (result instanceof this.Node) {
-            result = result.data.value;
+        if (result && typeof result === 'object' && 'value' in result) {
+            result = result.value;
         }
+
         return result;
     },
 

@@ -387,3 +387,14 @@ test('Predicate function can be passed an object and call a function', function 
 
     equal(derived.attr('length'), 3, 'Length is correct after change');
 });
+
+test('Get value at index using attr()', function () {
+    var source = new List(['a', 'b', 'c']);
+    var derived = source.filter(function () {
+        return true;
+    });
+
+    equal(derived.attr(0), 'a', 'Got value using .attr()');
+    equal(derived.attr(1), 'b', 'Got value using .attr()');
+    equal(derived.attr(2), 'c', 'Got value using .attr()');
+});
