@@ -42,11 +42,14 @@ steal('list', 'can', 'can/view/stache', function (List) {
           i = 0;
       }
 
-      var currentNum = numbers.attr(i).attr('number');
+      var circle = numbers.attr(i);
+      var color = circle.attr('hex');
+      circle.attr('hex', '#000');
+      var currentNum = circle.attr('number');
       var newNum = numbersLib.alternateNumber(currentNum);
 
       numbers.attr(i).attr('number', newNum);
-
+      circle.attr('hex', color);
       i++;
     }
 

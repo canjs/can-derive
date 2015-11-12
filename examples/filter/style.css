@@ -15,10 +15,10 @@ html {
     float: left;
     width: 30px;
     height: 30px;
-    margin: 0 2px 1px;
+    /*margin: 0 2px 1px;*/
     text-align: center;
     line-height: 30px;
-    border-radius: 50%;
+    /*border-radius: 50%;*/
     color: #fff;
     background-color: #eee;
 }

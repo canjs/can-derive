@@ -109,7 +109,7 @@ steal('can', 'list', 'can/view/stache', function (can, List) {
         }).bind('mouseup mouseleave', function() {
             $(this).removeClass('pressed');
             clearTimeout(timeoutId);
-            window.cancelAnimationFrame(requestId);
+            clearTimeout(requestId);
             requestId = 0;
         });
     };
@@ -195,7 +195,7 @@ html {
     margin: 0;
     text-align: center;
     line-height: 30px;
-    border-radius: 50%;
+    /*border-radius: 50%;*/
     color: #fff;
     background-color: #000;
     text-decoration: none;
