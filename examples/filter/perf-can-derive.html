@@ -53,10 +53,12 @@ steal('list', 'can', 'can/view/stache', function (List) {
       i++;
     }
 
-    setInterval(function () {
+    setTimeout(frame, 0);
+    function frame () {
         update();
         Monitoring.renderRate.ping();
-    }, 0)
+        setTimeout(frame, 0);
+    }
 
     $('#demo').append(can.view('main-template', {
       lists: [

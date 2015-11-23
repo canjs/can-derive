@@ -49,7 +49,6 @@
           peak: Math.max(fps, prevState.peak)
         };
       });
-      Monitoring.renderRate.ping();
     },
 
     createNumbers: function(count) {
@@ -119,6 +118,7 @@
 
   function frame() {
     component.updateNumbers(true);   // change to false to see fps without updates
+    Monitoring.renderRate.ping();
     setTimeout(frame, 0);
   }
 
