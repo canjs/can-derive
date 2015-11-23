@@ -177,7 +177,7 @@ DerivedList = RBTreeList.extend({
 
         // Deal with the items after this inserted item that now
         // have a new index
-        this._propagateInsert(insertIndex + 1);
+        this._propagateIndexShift(insertIndex + 1);
     },
 
     describeSourceItem: function (item, insertIndex) {
@@ -197,7 +197,7 @@ DerivedList = RBTreeList.extend({
         return sourceItem;
     },
 
-    _propagateInsert: function (affectedIndex) {
+    _propagateIndexShift: function (affectedIndex) {
 
         var i, node;
 
@@ -239,7 +239,7 @@ DerivedList = RBTreeList.extend({
 
     removeItem: function (item, removedIndex) {
         this.unset(removedIndex, true);
-        this._propagateInsert(removedIndex);
+        this._propagateIndexShift(removedIndex);
     },
 
     // Derived/filtered aren't writeable like traditional lists, they're
