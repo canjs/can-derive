@@ -398,3 +398,13 @@ test('Get value at index using attr()', function () {
     equal(derived.attr(1), 'b', 'Got value using .attr()');
     equal(derived.attr(2), 'c', 'Got value using .attr()');
 });
+
+test('Emptying a source tree emtpies its filtered tree', function () {
+    var source = new List(['a', 'b', 'c', 'd', 'e', 'f']);
+    var filtered = source.filter(function () { return true; });
+
+    source.splice(0, source.length);
+
+    equal(source.length, 0, 'Tree is empty');
+    equal(filtered.length, 0, 'Tree is empty');
+});

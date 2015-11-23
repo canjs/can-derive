@@ -228,13 +228,13 @@ DerivedList = RBTreeList.extend({
     },
 
     removeItems: function (items, offset) {
-        var self = this;
+        var index = (items.length && items.length - 1) + offset;
 
         // Remove each item
-        can.each(items, function (item, i) {
-            var index = offset + i;
-            self.removeItem(item, index);
-        });
+        while (index >= offset) {
+            this.removeItem(items[index], index);
+            index--;
+        }
     },
 
     removeItem: function (item, removedIndex) {
