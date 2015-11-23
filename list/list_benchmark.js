@@ -30,7 +30,7 @@ window.makePredicateFn = function (needle) {
     };
 };
 
-benchmark.suite('can.DeriveList.filter')
+benchmark.suite('can.derive.List.filter')
     .add({
         name: 'Populating a derived list ' + window.NUMBER_OF_ITEMS,
         setup: function() {
@@ -39,11 +39,11 @@ benchmark.suite('can.DeriveList.filter')
             var predicateFn = window.makePredicateFn(needle);
         },
         fn: function () {
-            var source = new can.DeriveList(values);
+            var source = new can.derive.List(values);
 
-            console.time('Create filtered list')
+            console.time('Create filtered list');
             var filtered = source.filter(predicateFn);
-            console.timeEnd('Create filtered list')
+            console.timeEnd('Create filtered list');
 
             if (filtered.attr('length') !== 1) { throw new Error('Abort'); }
         }
@@ -51,13 +51,13 @@ benchmark.suite('can.DeriveList.filter')
     .add({
         name: 'Updating a derived list ' + window.NUMBER_OF_ITEMS,
         setup: function () {
-            var values = window.makeArray(window.NUMBER_OF_ITEMS);
             var needle = window.makeItem(window.NUMBER_OF_ITEMS - 1);
             var predicateFn = window.makePredicateFn(needle);
         },
 
         fn: function () {
-            var source = new can.DeriveList(values);
+            var values = window.makeArray(window.NUMBER_OF_ITEMS);
+            var source = new can.derive.List(values);
             var filtered = source.filter(predicateFn);
 
             // Change the value so that it passes the filter
@@ -65,11 +65,11 @@ benchmark.suite('can.DeriveList.filter')
 
             if (filtered.attr('length') !== 2) { throw new Error('Abort'); }
 
-            console.time('Update filtered list')
+            console.time('Update filtered list');
             // Change it back so that it's ready for the next test
             source.attr('0.id', '0');
 
-            console.timeEnd('Update filtered list')
+            console.timeEnd('Update filtered list');
 
             if (filtered.attr('length') !== 1) { throw new Error('Abort'); }
         }
