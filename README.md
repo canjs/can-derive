@@ -94,11 +94,11 @@ Reads an element from an index on the filtered list. This references the *elemen
 
 `derivedList.each(fn) --> DerivedList`
 
-Iterates through the DerivedList, calling a function for each element. The elements provided inside the function will be the elements *in the source list*. The filtered list will be updated only if the outcome of the predicate function changes.
+Iterates through the DerivedList, calling a function for each element. The elements provided inside the function will be the elements *in the source list*.
 
 ### Other can.List methods
 
-Since DerivedList is a [can.List](http://canjs.com/docs/can.List.html), the following methods are also available:
+Since DerivedList inherites from [can.List](http://canjs.com/docs/can.List.html), the following methods are also available:
 
 - [filter](http://canjs.com/docs/can.List.prototype.filter.html)
 - [indexOf](http://canjs.com/docs/can.List.prototype.indexOf.html)
@@ -118,7 +118,7 @@ The filtered list is not changed manually, but is maintained as the source list 
 
 ## Performance
 
-`can-derive` optimizes for indertions and removals, completing them in O(log n) time. This means that changes to the source list will automatically update the derived list in O(log n) time, compared to the standard O(n) time you would expect in other implementations.
+`can-derive` optimizes for insertions and removals, completing them in `O(log n)` time. This means that changes to the source list will automatically update the derived list in `O(log n)` time, compared to the standard `O(n)` time you would expect in other implementations.
 
 It does this by:
 
@@ -133,9 +133,8 @@ This algorithm was originally discussed in [this StackExchange thread](http://cs
 In general, it is preferable to use `can-derive` over alternative approaches when:
 
 - Your source list contains 10 or more items
-- You would need to perform a `diff` operation in an alternative approach
+- You need to know how the filtered list changed, for instance when rendering in the DOM.
 
-The latter case will be fulfilled when you need to render the filtered list in the DOM. Since `can-derive` generates change events, the `diff` step is no longer necessary when re-rendering a filtered list in the DOM.
 
 ## Contributing
 
