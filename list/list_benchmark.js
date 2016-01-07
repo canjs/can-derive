@@ -1,76 +1,291 @@
-var benchmark = require('steal-benchmark');
+var Benchmark = require('benchmark');
 var can = require('can');
+var diff = require('can/util/array/diff.js');
+
 require("./list");
+require('can/view/autorender/autorender');
 
-window.NUMBER_OF_ITEMS = 10000;
+var appState;
 
-window.makeItem = function (index) {
-    return new can.Map({
-        id: index.toString(16),
-        firstName: 'Chris',
-        lastName: 'Gomez',
-        fullName: function () {
-            return [this.attr('firstName'), this.attr('lastName'),
-            this.attr('id')].join(' ');
+/**
+ * Utilites - Referenced by benchmarks
+ **/
+
+var utils = {
+    makeItem: function (index) {
+        return new can.Map({
+            id: index.toString(16),
+            firstName: 'Chris',
+            lastName: 'Gomez',
+            fullName: function () {
+                return [this.attr('firstName'), this.attr('lastName'),
+                this.attr('id')].join(' ');
+            }
+        });
+    },
+    makeArray: function (length) {
+        var a = [];
+        for (var i = 0; i < length; i++) {
+            a.push(this.makeItem(i));
         }
-    });
-};
-
-window.makeArray = function (length) {
-    var a = [];
-    for (var i = 0; i < length; i++) {
-        a.push(window.makeItem(i));
+        return a;
+    },
+    makePredicateFn: function (needle) {
+        return function (item) {
+            return item.fullName() === needle.fullName();
+        };
     }
-    return a;
 };
 
-window.makePredicateFn = function (needle) {
-    return function (item) {
-        return item.fullName() === needle.fullName();
-    };
-};
+/**
+ * Core - Benchmarks
+ **/
 
-benchmark.suite('can.derive.List.filter')
-    .add({
-        name: 'Populating a derived list ' + window.NUMBER_OF_ITEMS,
-        setup: function() {
-            var values = window.makeArray(window.NUMBER_OF_ITEMS);
-            var needle = window.makeItem(window.NUMBER_OF_ITEMS - 1);
-            var predicateFn = window.makePredicateFn(needle);
+// Define default values
+var ResultMap = can.Map.extend({
+    define: {
+        nativePopulate: {
+            value: '-'
         },
-        fn: function () {
-            var source = new can.derive.List(values);
+        nativeUpdate: {
+            value: '-'
+        },
+        derivePopulate: {
+            value: '-'
+        },
+        deriveUpdate: {
+            value: '-'
+        },
+        breakEvenUpdateCount: {
+            get: function () {
+                var nativePopulate = this.attr('nativePopulate');
+                // var nativeUpdate = this.attr('nativeUpdate');
+                var derivePopulate = this.attr('derivePopulate');
+                var deriveUpdate = this.attr('deriveUpdate');
 
-            console.time('Create filtered list');
-            var filtered = source.filter(predicateFn);
-            console.timeEnd('Create filtered list');
+                if (typeof nativePopulate !== 'number' ||
+                        // typeof nativeUpdate !== 'number' ||
+                        typeof derivePopulate !== 'number' ||
+                        typeof deriveUpdate !== 'number') {
+                    return '-';
+                }
 
-            if (filtered.attr('length') !== 1) { throw new Error('Abort'); }
+                return (derivePopulate - nativePopulate) /
+                    (nativePopulate - deriveUpdate);
+            }
         }
-    })
-    .add({
-        name: 'Updating a derived list ' + window.NUMBER_OF_ITEMS,
-        setup: function () {
-            var needle = window.makeItem(window.NUMBER_OF_ITEMS - 1);
-            var predicateFn = window.makePredicateFn(needle);
-        },
+    }
+});
 
-        fn: function () {
-            var values = window.makeArray(window.NUMBER_OF_ITEMS);
-            var source = new can.derive.List(values);
-            var filtered = source.filter(predicateFn);
+var testResults = new can.List([
+    new ResultMap({ numberOfItems: 100 }),
+    new ResultMap({ numberOfItems: 1000 }),
+    new ResultMap({ numberOfItems: 10000 }),
+]);
 
-            // Change the value so that it passes the filter
-            source.attr('0.id', (window.NUMBER_OF_ITEMS - 1).toString(16));
+var benchmarkSuite = new Benchmark.Suite('can.derive.List.filter')
+    .on('cycle', function (ev) {
+        var benchmark = ev.target;
+        var averageMs = benchmark.stats.mean * 1000;
 
-            if (filtered.attr('length') !== 2) { throw new Error('Abort'); }
+        console.log(benchmark.toString() +
+            ' [Avg runtime: ' + averageMs + ']');
 
-            console.time('Update filtered list');
-            // Change it back so that it's ready for the next test
-            source.attr('0.id', '0');
+        benchmark.results.attr(benchmark.key, averageMs);
+    });
 
-            console.timeEnd('Update filtered list');
+var setupBenchmarks = function () {
+    testResults.each(function (results) {
 
-            if (filtered.attr('length') !== 1) { throw new Error('Abort'); }
+        if (appState.attr('options.runNativePopulate')) {
+
+            benchmarkSuite.add(can.extend({
+                results: results,
+                key: 'nativePopulate',
+                name: 'Native populate (' + results.numberOfItems + ' items)',
+                setup: function () {
+                    var numberOfItems = this.results.attr('numberOfItems');
+                    var source = this.makeArray(numberOfItems);
+                    var needle = this.makeItem(numberOfItems - 1);
+                    var predicateFn = this.makePredicateFn(needle);
+                },
+                fn: function () {
+                    var filtered = source.filter(predicateFn);
+
+                    if (filtered.length !== 1) { throw new Error('Abort'); }
+                }
+            }, utils));
+
+        }
+
+        if (appState.attr('options.runDerivePopulate')) {
+            benchmarkSuite.add(can.extend({
+                results: results,
+                key: 'derivePopulate',
+                name: 'Derived populate (' + results.numberOfItems + ' items)',
+                setup: function () {
+                    var numberOfItems = this.results.attr('numberOfItems');
+                    var values = this.makeArray(numberOfItems);
+                    var needle = this.makeItem(numberOfItems - 1);
+                    var predicateFn = this.makePredicateFn(needle);
+                    var source = new can.derive.List(values);
+                },
+                fn: function () {
+                    var filtered = source.filter(predicateFn);
+
+                    if (filtered.attr('length') !== 1) {
+                        throw new Error('Abort');
+                    }
+
+                    // Remove reference so that next filter starts from scratch
+                    delete source._derivedList;
+                }
+            }, utils));
+        }
+
+        if (appState.attr('options.runNativeUpdate')) {
+            benchmarkSuite.add(can.extend({
+                results: results,
+                key: 'nativeUpdate',
+                name: 'Native update (' + results.numberOfItems + ' items)',
+                diff: diff,
+                setup: function () {
+                    var numberOfItems = this.results.attr('numberOfItems');
+                    var source = this.makeArray(numberOfItems);
+                    var needle = this.makeItem(numberOfItems - 1);
+                    var predicateFn = function (item) {
+                        return item.fullName() !== needle.fullName();
+                    }
+                    var oldFiltered = source.filter(predicateFn);
+                },
+                fn: function () {
+
+                    // Change the value so that it FAILS the predicate test
+                    source[numberOfItems - 2].attr('id',
+                        (numberOfItems - 1).toString(16));
+
+                    var newFiltered = source.filter(predicateFn);
+
+                    // Do a diff to find out what changed
+                    // NOTE: Diffing is pretty quick...
+                    // http://jsbin.com/yujabaqabi/edit?js,console
+                    var patch = this.diff(oldFiltered, newFiltered);
+
+                    // Change the value so that it PASSES the predicate test
+                    source[numberOfItems - 2].attr('id', (0).toString(16));
+                }
+            }, utils));
+        }
+
+        if (appState.attr('options.runDeriveUpdate')) {
+            benchmarkSuite.add(can.extend({
+                results: results,
+                key: 'deriveUpdate',
+                name: 'Derived update (' + results.numberOfItems + ' items)',
+                setup: function () {
+
+                    var numberOfItems = this.results.attr('numberOfItems');
+                    var values = this.makeArray(numberOfItems);
+                    var needle = this.makeItem(numberOfItems - 1);
+                    var predicateFn = this.makePredicateFn(needle);
+                    var source = new can.derive.List(values);
+                    var filtered = source.filter(predicateFn);
+                },
+                fn: function () {
+
+                    if (filtered.attr('length') !== 1) {
+                        throw new Error('Abort');
+                    }
+
+                    // Change the value so that it PASSES the predicate test
+                    source.attr('0.id', (numberOfItems - 1).toString(16));
+
+                    if (filtered.attr('length') !== 2) {
+                        throw new Error('Abort');
+                    }
+
+                    // Change the value so that it FAILS the predicate test
+                    source.attr('0.id', (0).toString(16));
+
+                    if (filtered.attr('length') !== 1) {
+                        throw new Error('Abort');
+                    }
+                }
+            }, utils));
         }
     });
+}
+
+
+/**
+ * Options/Graphing UI
+ **/
+
+can.Component.extend({
+    tag: 'benchmark-options',
+    template: can.view('benchmark-options-template'),
+    viewModel: {
+        define: {
+            options: {
+                value: {
+                    define: {
+                        runNativePopulate: {
+                            type: 'boolean',
+                            value: true
+                        },
+                        runNativeUpdate: {
+                            type: 'boolean',
+                            value: false
+                        },
+                        runDerivePopulate: {
+                            type: 'boolean',
+                            value: true
+                        },
+                        runDeriveUpdate: {
+                            type: 'boolean',
+                            value: true
+                        },
+                        startOnPageLoad: {
+                            type: 'boolean',
+                            value: false
+                        }
+                    }
+                }
+            },
+            running: {
+                value: false
+            },
+            testResults: {
+                value: testResults
+            }
+        },
+        init: function () {
+            appState = this;
+            can.route.map(this.attr('options'));
+            can.route.ready();
+
+            if (this.attr('options.startOnPageLoad')) {
+                this.startBenchmarks();
+            }
+        },
+        startBenchmarks: function () {
+            var context = this;
+
+            this.attr('running', true);
+
+            setupBenchmarks();
+
+            benchmarkSuite.on('complete', function () {
+                context.attr('running', false);
+            });
+
+            // Render the button state before blocking repaints
+            setTimeout(function () {
+                benchmarkSuite.run();
+            }, 100);
+        },
+        resetOptions: function () {
+            this.attr('options').attr({}, true);
+        }
+    }
+})

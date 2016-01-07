@@ -20,19 +20,21 @@
     "can-binarytree": "git://github.com/akagomez/can-binarytree.git"
   },
   "devDependencies": {
+    "benchmark": "1.0.0",
     "jshint": "2.7.0",
     "serve": "1.4.0",
-    "steal": "0.10.1",
-    "steal-benchmark": "0.0.1",
-    "steal-tools": "0.11.0-pre.9",
+    "steal": "0.13.0",
     "steal-qunit": "0.0.2",
+    "steal-tools": "0.13.0",
     "system-npm": "0.3.0",
     "testee": "0.2.0"
   },
   "system": {
-    "npmIgnore": [
-      "testee"
-    ]
+    "meta": {
+      "benchmark": {
+        "format": "cjs"
+      }
+    }
   },
   "scripts": {
     "start": "serve -p 8080",
