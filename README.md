@@ -99,7 +99,7 @@ Iterates through the DerivedList, calling a function for each element. The eleme
 
 ### Other can.List methods
 
-Since DerivedList inherites from [can.List](http://canjs.com/docs/can.List.html), the following methods are also available:
+Since DerivedList inherits from [can.List](http://canjs.com/docs/can.List.html), the following methods are also available:
 
 - [filter](http://canjs.com/docs/can.List.prototype.filter.html)
 - [indexOf](http://canjs.com/docs/can.List.prototype.indexOf.html)
