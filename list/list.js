@@ -45,18 +45,26 @@ DerivedList = RBTreeList.extend({
     _indexBound: false,
 
     filter: function (predicate, predicateContext) {
-        if (! this._derivedList) {
-            this._derivedList = new DerivedList(this);
-        }
+        var context = this;
+        var filteredList;
 
-        var filteredList =
-            new FilteredList(this._derivedList, predicate, predicateContext);
+        can.__notObserve(function () {
 
-        // Set _indexBound to true if this filtered list depends on the
-        // index. Once set to true there's no going back.
-        if (! this._derivedList._indexBound && filteredList._indexBound) {
-            this._derivedList._indexBound = true;
-        }
+            if (! context._derivedList) {
+                context._derivedList = new DerivedList(context);
+            }
+
+            filteredList = new FilteredList(context._derivedList, predicate,
+                predicateContext);
+
+            // Set _indexBound to true if this filtered list depends on the
+            // index. Once set to true there's no going back.
+            if (! context._derivedList._indexBound &&
+                    filteredList._indexBound) {
+                context._derivedList._indexBound = true;
+            }
+
+        })();
 
         return filteredList;
     },

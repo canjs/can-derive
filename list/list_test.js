@@ -1,5 +1,6 @@
 var QUnit = require("steal-qunit");
 var List = require("./list");
+require('can/map/define/define');
 
 QUnit.module('.filter()', {
     setup: function () {}
@@ -408,4 +409,60 @@ test('Emptying a source tree emtpies its filtered tree', function () {
 
     equal(source.length, 0, 'Tree is empty');
     equal(filtered.length, 0, 'Tree is empty');
+});
+
+test('Can be used inside a define "get" method', function () {
+
+    var expectingGet = true;
+
+    var Map = can.Map.extend({
+        define: {
+            todos: {
+                value: function () {
+                    return new can.List([
+                        { name: 'Hop', completed: true },
+                        { name: 'Skip', completed: false },
+                        { name: 'Jump', completed: true }
+                    ]);
+                }
+            },
+            completed: {
+                get: function () {
+                    var todos = this.attr('todos');
+                    var filter = can.derive.List.prototype.filter;
+
+                    if (! expectingGet) {
+                        ok(false, '"get" method called unexpectedly');
+                    }
+
+                    expectingGet = false;
+
+                    return filter.call(todos, function (todo) {
+                        return todo.attr('completed') === true;
+                    });
+                }
+            }
+        }
+    });
+
+    var map = new Map();
+
+    // Enable caching
+    map.bind('completed', can.noop);
+
+    var completed = map.attr('completed');
+
+    map.attr('todos').push({ name: 'Pass test', completed: true });
+
+    ok(completed === map.attr('completed'),
+        'Derived list instance is the same');
+
+    expectingGet = true;
+
+    map.attr('todos', new can.List([
+        { name: 'Drop mic', completed: true }
+    ]));
+
+    ok(completed !== map.attr('completed'),
+        'Derived list instance has changed');
 });

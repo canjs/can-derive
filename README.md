@@ -58,7 +58,7 @@ If you're using the [can.Map.define plugin](http://canjs.com/docs/can.Map.protot
 			Value: can.List
 		},
 		completedTodos: {
-			value: function(){
+			get: function() {
 				return this.attr('todos').dFilter(function(todo){
 					return todo.attr('complete');
 				});
@@ -68,7 +68,8 @@ If you're using the [can.Map.define plugin](http://canjs.com/docs/can.Map.protot
 }
 ```
 
-Note that you are using `value` and not `get`. With `get`, every time `todos` changes, a brand new derived list will be generated. Since the derived list updates itself based on the source list, make sure only to instantiate the derived list once.
+Note: The `can-derive` ensures that the define plugin's `get` method will
+not observe "length" like it would a traditional [can.List](http://canjs.com/docs/can.List.html).
 
 ## API
 
