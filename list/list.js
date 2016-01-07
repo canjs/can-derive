@@ -165,8 +165,9 @@ DerivedList = RBTreeList.extend({
     },
 
     addItem: function (item, insertIndex) {
-        var node;
+        var context = this;
         var sourceItem = this.describeSourceItem.apply(this, arguments);
+        var node;
 
         // Don't dispatch the resulting "add" event until a reference
         // to the node has been saved to the `sourceItem` object
@@ -175,9 +176,14 @@ DerivedList = RBTreeList.extend({
         sourceItem.node = node;
         can.batch.stop();
 
-        // Deal with the items after this inserted item that now
-        // have a new index
-        this._propagateIndexShift(insertIndex + 1);
+        // Wait for the "add" event to be fired before continuing,
+        // otherwise references we depend on might not be up-to-date
+        can.batch.afterPreviousEvents(function () {
+
+            // Deal with the items after this inserted item that now
+            // have a new index
+            context._propagateIndexShift(insertIndex + 1);
+        });
     },
 
     describeSourceItem: function (item, insertIndex) {
