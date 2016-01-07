@@ -28,8 +28,8 @@ import 'can-derive';
 
 Once you've imported `can-derive` into your project, simply use `can.List.filter` to generate a derived list based on a `filter` function. The following example derives a list of completed items from a todo list:
 ```
-var sourceList = new can.List([{name: "dishes", complete: true}, 
-                               {name: "lawn", complete: false}, 
+var sourceList = new can.List([{name: "dishes", complete: true},
+                               {name: "lawn", complete: false},
                               ...])
 
 var completed = sourceList.filter(function(todo){
@@ -145,4 +145,4 @@ To set up your dev environment:
 2. Run `npm install`.
 3. Open `list/test.html` in your browser. Everything should pass.
 4. Run `npm test`. Everything should pass.
-5. Run `npm run-script build`. Everything should build ok 
+5. Run `npm run-script build`. Everything should build ok
