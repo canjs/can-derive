@@ -8,10 +8,11 @@ html {
 }
 
 .col {
-    flex: 1;
+    flex: 1 0 auto;
 }
 
 .circle {
+    /*display: none;*/
     float: left;
     width: 30px;
     height: 30px;

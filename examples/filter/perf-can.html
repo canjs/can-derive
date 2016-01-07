@@ -1,34 +1,29 @@
-<title>.filter() perf - can</title>
+<title>.filter() perf - can-derive</title>
 
 <div id="demo"></div>
 
+<link rel="stylesheet" href="./style.css" />
 <script id="main-template" type="text/stache">
-<p>FPS: {{stats.fps}}, Peak: {{stats.peak}}</p>
-<table>
+
+<div class="cols">
     {{#each lists}}
-        <tr>
-            <td>{{label}}:</td>
-            <td class="circles">
+        <div class="col">
+            <h3>{{label}}:</h3>
+            <div class="circles">
                 {{#each numbers}}
                     <div class="circle" style="background-color: {{hex}}">{{number}}</div>
                 {{/each}}
-            </td>
-        </tr>
+            </div>
+        </div>
     {{/each}}
-</table>
+</div>
 </script>
 
 <script src="../../node_modules/steal/steal.js"></script>
 <script src="./common.js"></script>
 <script type="text/javascript">
-steal('can', 'can/view/stache', 'can/map/define', function () {
-    var DO_UPDATE = true;  // change to false to see fps without update
-
+steal('can', 'can/view/stache', function () {
     var numbers = new can.List();
-    var stats = new can.Map({ fps: 0, peak: -Infinity });
-    var lastTick = 0;
-    var frames = 0;
-    var msecs = 0;
 
     for (var i = 0; i < window.NUMBER_OF_CIRCLES; i++) {
         var hex = randomColor({
@@ -36,160 +31,74 @@ steal('can', 'can/view/stache', 'can/map/define', function () {
            hue: 'random'
         });
 
-        can.batch.start()
         numbers.push({
             hex: hex,
             number: numbersLib.generateRandomNumber()
         });
-        can.batch.stop()
-    }
-
-    setTimeout(frame, 0);
-
-    // can.batch.start();
-    // window.requestAnimationFrame(function() {
-    //   can.batch.stop(true, true);
-    //   window.requestAnimationFrame(arguments.callee);
-    // });
-
-    function frame() {
-      var now = performance.now();
-      var fps;
-      msecs += (now - lastTick);
-      lastTick = now;
-
-      if (msecs >= 1000) {
-        fps = Math.round(frames / (msecs / 1000));
-        stats.attr('fps', fps);
-        stats.attr('peak', Math.max(fps, stats.attr('peak')));
-        frames = msecs = 0;
-      }
-
-      if (DO_UPDATE) update();
-      i++;
-      frames++;
-      Monitoring.renderRate.ping();
-      setTimeout(frame, 0);
     }
 
     function update() {
       if (i >= window.NUMBER_OF_CIRCLES) {
           i = 0;
       }
-      var currentNum = numbers.attr(i).attr('number');
+
+      var circle = numbers.attr(i);
+      var color = circle.attr('hex');
+      circle.attr('hex', '#000');
+      var currentNum = circle.attr('number');
       var newNum = numbersLib.alternateNumber(currentNum);
+
       numbers.attr(i).attr('number', newNum);
+      circle.attr('hex', color);
+      i++;
     }
 
-    var First = can.Map.extend({
-        define: {
-            label: {
-                value: 'Even'
-            },
-            numbers: {
-                value: [],
-                get: function (initialValue) {
-                    return initialValue.replace(numbers.filter(function (number) {
-                        return number.attr('number') % 2 === 0;
-                    }));
-                }
-            }
-        }
-    });
-    var Second = can.Map.extend({
-        define: {
-            label: {
-                value: 'Odd'
-            },
-            numbers: {
-                value: [],
-                get: function (initialValue) {
-                    return initialValue.replace(numbers.filter(function (number) {
-                        return number.attr('number') % 2 !== 0;
-                    }));
-                }
-            }
-        }
-    });
-    var Third = can.Map.extend({
-        define: {
-            label: {
-                value: '< 50'
-            },
-            numbers: {
-                value: [],
-                get: function (initialValue) {
-                    return initialValue.replace(numbers.filter(function (number) {
-                        return number.attr('number') <= 50;
-                    }));
-                }
-            }
-        }
-    });
-    var Fourth = can.Map.extend({
-        define: {
-            label: {
-                value: '> 50'
-            },
-            numbers: {
-                value: [],
-                get: function (initialValue) {
-                    return initialValue.replace(numbers.filter(function (number) {
-                        return number.attr('number') >= 50;
-                    }));
-                }
-            }
-        }
-    });
+    setTimeout(frame, 0);
+    function frame () {
+        update();
+        Monitoring.renderRate.ping();
+        setTimeout(frame, 0);
+    }
 
     $('#demo').append(can.view('main-template', {
-    // ((noRender = {
-      stats: stats,
       lists: [
         {
             label: 'Source',
             numbers: numbers
         },
-        new First(),
-        new Second(),
-        new Third(),
-        new Fourth()
+        {
+            label: 'Even',
+            numbers: can.compute(function () {
+                return numbers.filter(function (number) {
+                    return number.attr('number') % 2 === 0;
+                });
+            })
+        },
+        {
+            label: 'Odd',
+            numbers: can.compute(function () {
+                return numbers.filter(function (number) {
+                    return number.attr('number') % 2 !== 0;
+                });
+            })
+        },
+        {
+            label: '< 50',
+            numbers: can.compute(function () {
+                return numbers.filter(function (number) {
+                    return number.attr('number') <= 50;
+                });
+            })
+        },
+        {
+            label: '> 50',
+            numbers: can.compute(function () {
+                return numbers.filter(function (number) {
+                    return number.attr('number') >= 50;
+                });
+            })
+        }
     ]}));
 
 });
 </script>
-
-<style type="text/css">
-html {
-    font-family: sans-serif;
-    font-size: 12px;
-}
-table, tbody, th, tr, td {
-    border-spacing: 0;
-    border-collapse: collapse;
-    font-size: 1em;
-}
-td {
-    vertical-align: top;
-    line-height: 30px;
-}
-
-td:first-child {
-    width: 50px;
-    font-weight: bold;
-}
-td:last-child {
-    padding-bottom: 10px;
-}
-.circle {
-    float: left;
-    width: 30px;
-    height: 30px;
-    margin: 0 2px 1px;
-    text-align: center;
-    line-height: 30px;
-    border-radius: 50%;
-    color: #fff;
-    background-color: #eee;
-}
-</style>
