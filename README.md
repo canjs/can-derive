@@ -68,7 +68,7 @@ If you're using the [can.Map.define plugin](http://canjs.com/docs/can.Map.protot
 }
 ```
 
-Note: The `can-derive` ensures that the define plugin's `get` method will
+Note: The `can-derive` plugin ensures that the define plugin's `get` method will
 not observe "length" like it would a traditional [can.List](http://canjs.com/docs/can.List.html).
 
 ## API
