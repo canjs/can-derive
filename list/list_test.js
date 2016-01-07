@@ -161,7 +161,7 @@ test('Items removed from a source list are removed from their derived list', fun
 });
 
 test('Predicate function can be bound to source index', function () {
-    var alphabet = dirtyAlphabet.slice();
+    var alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
     var filterFn = function (value, index) { return index % 2 === 0; };
     var source = new List(alphabet);
     var derived = source.filter(filterFn);
@@ -171,8 +171,8 @@ test('Predicate function can be bound to source index', function () {
     ok(equalValues(derived, expected), 'Odd indexed items excluded');
 
     // Insert at the beginning
-    source.unshift(true);
-    alphabet.unshift(true);
+    source.unshift('_a');
+    alphabet.unshift('_a');
     expected = alphabet.filter(filterFn);
 
     ok(equalValues(derived, expected), 'Items are flopped after an insert at the beginning');
@@ -184,9 +184,10 @@ test('Predicate function can be bound to source index', function () {
 
     ok(equalValues(derived, expected), 'Items are flopped after a remove at the beginning');
 
-    // Insert at the middle
-    source.splice(10, 0, '10A');
-    alphabet.splice(10, 0, '10A');
+    // Insert near the middle
+    // NOTE: Make sure this happens at an even index
+    source.splice(2, 0, 'b <-> c');
+    alphabet.splice(2, 0, 'b <-> c');
     expected = alphabet.filter(filterFn);
 
     ok(equalValues(derived, expected), 'Segment of items are flopped after an insert (in the middle)');
