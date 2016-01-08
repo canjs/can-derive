@@ -1,6 +1,6 @@
 {
   "name": "can-derive",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "Derive a list/map from another via live binding",
   "main": "can-derive.js",
   "author": "Chris Gomez <akagomez@gmail.com>",
