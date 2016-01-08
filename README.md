@@ -4,7 +4,7 @@
 up-to-date with a source list.
 
 For example, a todo list might contain items with a `completed` property.
-Traditionally `can.List.filter` enables you to return a new `can.List`
+Traditionally `can.List.filter` enables you to create a new `can.List`
 containing only "completed" items. However, if the source list were to
 change in any way - for instance via an "add" or "remove" - the filtered
 `can.List` of "completed" items may become an innaccurate representation
