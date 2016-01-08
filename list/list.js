@@ -44,7 +44,7 @@ DerivedList = RBTreeList.extend({
     // and splice should result in O(n) predicate evaluations
     _indexBound: false,
 
-    filter: function (predicate, predicateContext) {
+    dFilter: function (predicate, predicateContext) {
         var context = this;
         var filteredList;
 
@@ -511,19 +511,7 @@ ObservedPredicate.prototype.includeFn = function () {
     return include;
 };
 
-// Overwrite the default `.filter()` method with our derived list filter
-// method
-DerivableList = can.List.extend({
-    filter: DerivedList.prototype.filter
-});
+// Add our unique filter method to the can.List prototype
+can.List.prototype.dFilter = DerivedList.prototype.dFilter;
 
-// Register the modified RBTreeList to the `can` namespace
-if (typeof window !== 'undefined' && !require.resolve && window.can) {
-    if (! window.can.derive) {
-        window.can.derive = {};
-    }
-
-    can.derive.List = DerivableList;
-}
-
-module.exports = DerivableList;
+module.exports = DerivedList;

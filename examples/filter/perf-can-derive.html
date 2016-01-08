@@ -22,8 +22,8 @@
 <script src="../../node_modules/steal/steal.js"></script>
 <script src="./common.js"></script>
 <script type="text/javascript">
-steal('list', 'can', 'can/view/stache', function (List) {
-    var numbers = new List();
+steal('list', 'can', 'can/view/stache', function () {
+    var numbers = new can.List();
 
     for (var i = 0; i < window.NUMBER_OF_CIRCLES; i++) {
         var hex = randomColor({
@@ -68,25 +68,25 @@ steal('list', 'can', 'can/view/stache', function (List) {
         },
         {
             label: 'Even',
-            numbers: numbers.filter(function (number) {
+            numbers: numbers.dFilter(function (number) {
                 return number.attr('number') % 2 === 0;
             })
         },
         {
             label: 'Odd',
-            numbers: numbers.filter(function (number) {
+            numbers: numbers.dFilter(function (number) {
                 return number.attr('number') % 2 !== 0;
             })
         },
         {
             label: '< 50',
-            numbers: numbers.filter(function (number) {
+            numbers: numbers.dFilter(function (number) {
                 return number.attr('number') <= 50;
             })
         },
         {
             label: '> 50',
-            numbers: numbers.filter(function (number) {
+            numbers: numbers.dFilter(function (number) {
                 return number.attr('number') >= 50;
             })
         }
