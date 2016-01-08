@@ -3,14 +3,14 @@
 **can-derive** is a plugin that creates observable filtered lists that stay
 up-to-date with a source list.
 
-For example, a todo list might contain items with a `completed` property.
+For example, a todo list might contain todo objects with a `completed` property.
 Traditionally `can.List.filter` enables you to create a new `can.List`
-containing only "completed" items. However, if the source list were to
-change in any way - for instance via an "add" or "remove" - the filtered
-`can.List` of "completed" items may become an innaccurate representation
-of the source list. The same filtered list of "completed" items created
-with `can-derive`'s `.dFilter` would always be an accurate representation
-of with the source, no matter how it was manipulated.
+containing only the "completed" todo objects. However, if the source list were
+to change in any way - for instance via an "add" or "remove" - the returned
+`can.List` may become an innaccurate representation of the source list.
+The same filtered list of "completed" todo objects created
+with `can-derive`'s `can.List.dFilter` would always be an accurate
+representation of with the source, no matter how it was manipulated.
 
 **can-derive** is ideal for cases where the source list contains at least
 10 items and is expected to be "changed" frequently (3 or more times).
@@ -98,16 +98,18 @@ when calling `.filter()`.
 
 ## API
 
-The `can-derive` plugin adds the `dFilter` method to `can.List.prototype`, so
-all filtered lists are derived from a `can.List`.
+### can.List
 
-### dFilter
+#### .dFilter()
 
-`list.filter(predicate) -> DerivedList`
+`list.filter(predicateFn) -> DerivedList`
 
-Generates a derived list based on a predicate function.
+Generates a derived list based on the specified predicate function.
 
-### attr
+
+### DerivedList
+
+#### .attr()
 
 `derivedList.attr() -> Array`
 
@@ -115,11 +117,9 @@ Gets an array of all the elements in the derived list.
 
 `derivedList.attr(index) -> Object`
 
-Reads an element from an index on the filtered list. This references the
-*element in the source list* that *is at the specified index in the filtered
-list*.
+Returns the item in the filtered list at the specified index.
 
-### each
+#### .each()
 
 `derivedList.each(fn) -> DerivedList`
 
@@ -170,7 +170,7 @@ thread](http://cs.stackexchange.com/questions/43447/order-preserving-update-of-a
 In general, it is preferable to use `can-derive` over alternative approaches
 when:
 
-- Your source list contains 10 or more items
+- Your source list contains 10 or more elements
 - You need to know how the filtered list changed, for instance when rendering
   in the DOM.
 
