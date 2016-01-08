@@ -1,8 +1,8 @@
 var QUnit = require("steal-qunit");
-var List = require("./list");
+require("./list");
 require('can/map/define/define');
 
-QUnit.module('.filter()', {
+QUnit.module('.dFilter()', {
     setup: function () {}
 });
 
@@ -32,18 +32,18 @@ var equalValues = function (list, expectedValues) {
 };
 
 test('Method exists', function () {
-    ok(List.prototype.filter, 'List has filter method');
+    ok(can.List.prototype.dFilter, 'List has dFilter method');
 });
 
 test('The predicate function is executed when a source item changes', function () {
 
     var values = [true, true, true];
 
-    var source = new List(values);
+    var source = new can.List(values);
     var predicateFn = function (item) {
         return item;
     };
-    var derived = source.filter(predicateFn);
+    var derived = source.dFilter(predicateFn);
 
     equal(derived.attr('length'), 3, 'Initial length is correct');
 
@@ -60,9 +60,9 @@ test('The predicate function is executed when a source item changes', function (
 test('Derives initial values', function () {
 
     var filterFn = function (value, index) { return value ? true : false; };
-    var source = new List(dirtyAlphabet);
+    var source = new can.List(dirtyAlphabet);
     var expected = dirtyAlphabet.filter(filterFn);
-    var derived = source.filter(filterFn);
+    var derived = source.dFilter(filterFn);
 
     ok(equalValues(derived, expected), 'Initial values are correct');
 });
@@ -71,9 +71,9 @@ test('Changes to source list are synced to their derived list', function () {
 
     var alphabet = dirtyAlphabet.slice();
     var filterFn = function (value) { return value ? true : false; };
-    var source = new List(alphabet);
+    var source = new can.List(alphabet);
 
-    var derived = source.filter(filterFn);
+    var derived = source.dFilter(filterFn);
     var expected;
 
     source.attr(4, 'DD'); // D -> DD
@@ -99,8 +99,8 @@ test('Items added to a source list get added to their derived list', function ()
 
     var alphabet = dirtyAlphabet.slice();
     var filterFn = function (value) { return value ? true : false; };
-    var source = new List(alphabet);
-    var derived = source.filter(filterFn);
+    var source = new can.List(alphabet);
+    var derived = source.dFilter(filterFn);
     var expected;
 
     derived.bind('add', function (ev, items, offset) {
@@ -135,8 +135,8 @@ test('Items added to a source list get added to their derived list', function ()
 test('Items removed from a source list are removed from their derived list', function () {
     var alphabet = dirtyAlphabet.slice();
     var filterFn = function (value) { return value ? true : false; };
-    var source = new List(alphabet);
-    var derived = source.filter(filterFn);
+    var source = new can.List(alphabet);
+    var derived = source.dFilter(filterFn);
     var expected;
 
     // Remove first
@@ -164,8 +164,8 @@ test('Items removed from a source list are removed from their derived list', fun
 test('Predicate function can be bound to source index', function () {
     var alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
     var filterFn = function (value, index) { return index % 2 === 0; };
-    var source = new List(alphabet);
-    var derived = source.filter(filterFn);
+    var source = new can.List(alphabet);
+    var derived = source.dFilter(filterFn);
     var expected = alphabet.filter(filterFn);
 
     // Initial values
@@ -250,20 +250,20 @@ test('Can derive a filtered list from a filtered list', function () {
     var firstHalfFilter = makeFilterFn(function (a, b) { return a < b; });
     var secondHalfFilter = makeFilterFn(function (a, b) { return a >= b; });
 
-    var source = new List(letterCollection);
+    var source = new can.List(letterCollection);
 
     // Filter the whole collection into two separate lists
-    var derivedFirstHalf = source.filter(firstHalfFilter);
-    var derivedSecondHalf = source.filter(secondHalfFilter);
+    var derivedFirstHalf = source.dFilter(firstHalfFilter);
+    var derivedSecondHalf = source.dFilter(secondHalfFilter);
 
     // Filter the two lists into four additional lists
-    var derivedFirstQuarter = derivedFirstHalf.filter(firstHalfFilter);
-    var derivedSecondQuarter = derivedFirstHalf.filter(secondHalfFilter);
-    var derivedThirdQuarter = derivedSecondHalf.filter(firstHalfFilter);
-    var derivedFourthQuarter = derivedSecondHalf.filter(secondHalfFilter);
+    var derivedFirstQuarter = derivedFirstHalf.dFilter(firstHalfFilter);
+    var derivedSecondQuarter = derivedFirstHalf.dFilter(secondHalfFilter);
+    var derivedThirdQuarter = derivedSecondHalf.dFilter(firstHalfFilter);
+    var derivedFourthQuarter = derivedSecondHalf.dFilter(secondHalfFilter);
 
     var evaluate = function () {
-        // Recreate the halfed/quartered lists using native .filter()
+        // Recreate the halfed/quartered lists using native .dFilter()
         var expectedFirstHalf = letterCollection.filter(firstHalfFilter);
         var expectedSecondHalf = letterCollection.filter(secondHalfFilter);
         var expectedFirstQuarter = expectedFirstHalf.filter(firstHalfFilter);
@@ -298,9 +298,9 @@ test('Derived list fires add/remove/length events', function () {
         return value ? true : false;
     };
     var alphabet = dirtyAlphabet.slice();
-    var source = new List(dirtyAlphabet);
+    var source = new can.List(dirtyAlphabet);
+    var derived = source.dFilter(filterFn);
     var expected = alphabet.filter(filterFn);
-    var derived = source.filter(filterFn);
 
     derived.bind('add', function (ev, added, offset) {
         ok(true, '"add" event fired');
@@ -334,9 +334,9 @@ test('Can iterate initial values with .each()', function () {
     var filterFn = function (value, index) {
         return value ? true : false;
     };
-    var source = new List(dirtyAlphabet);
+    var source = new can.List(dirtyAlphabet);
     var expected = dirtyAlphabet.filter(filterFn);
-    var derived = source.filter(filterFn);
+    var derived = source.dFilter(filterFn);
 
     derived.each(function (value, index) {
         equal(value, expected[index], 'Iterated value matches expected value');
@@ -347,9 +347,9 @@ test('.attr([index]) returns correct values', function () {
     var filterFn = function (value, index) {
         return value ? true : false;
     };
-    var source = new List(dirtyAlphabet);
+    var source = new can.List(dirtyAlphabet);
     var expected = dirtyAlphabet.filter(filterFn);
-    var derived = source.filter(filterFn);
+    var derived = source.dFilter(filterFn);
 
     expected.forEach(function (expectedValue, index) {
         equal(derived.attr(index), expectedValue, 'Read value matches expected value');
@@ -357,7 +357,7 @@ test('.attr([index]) returns correct values', function () {
 });
 
 test('Predicate function can be passed an object and call a function', function () {
-    var source = new List();
+    var source = new can.List();
     var predicateFn = function (value) {
       var result = value.fullName() === FILTERED_VALUE.fullName();
       return result;
@@ -377,7 +377,7 @@ test('Predicate function can be passed an object and call a function', function 
     }
     var FILTERED_VALUE = value;
 
-    var derived = source.filter(predicateFn);
+    var derived = source.dFilter(predicateFn);
 
     equal(derived.attr('length'), 1, 'Length is correct after initial filter');
 
@@ -391,8 +391,8 @@ test('Predicate function can be passed an object and call a function', function 
 });
 
 test('Get value at index using attr()', function () {
-    var source = new List(['a', 'b', 'c']);
-    var derived = source.filter(function () {
+    var source = new can.List(['a', 'b', 'c']);
+    var derived = source.dFilter(function () {
         return true;
     });
 
@@ -402,8 +402,8 @@ test('Get value at index using attr()', function () {
 });
 
 test('Emptying a source tree emtpies its filtered tree', function () {
-    var source = new List(['a', 'b', 'c', 'd', 'e', 'f']);
-    var filtered = source.filter(function () { return true; });
+    var source = new can.List(['a', 'b', 'c', 'd', 'e', 'f']);
+    var filtered = source.dFilter(function () { return true; });
 
     source.splice(0, source.length);
 
@@ -428,16 +428,13 @@ test('Can be used inside a define "get" method', function () {
             },
             completed: {
                 get: function () {
-                    var todos = this.attr('todos');
-                    var filter = can.derive.List.prototype.filter;
-
                     if (! expectingGet) {
                         ok(false, '"get" method called unexpectedly');
                     }
 
                     expectingGet = false;
 
-                    return filter.call(todos, function (todo) {
+                    return this.attr('todos').dFilter(function (todo) {
                         return todo.attr('completed') === true;
                     });
                 }
@@ -447,7 +444,7 @@ test('Can be used inside a define "get" method', function () {
 
     var map = new Map();
 
-    // Enable caching
+    // Enable caching of virtual properties
     map.bind('completed', can.noop);
 
     var completed = map.attr('completed');

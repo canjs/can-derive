@@ -1,10 +1,15 @@
 # can-derive
 
-**can-derive** is a plugin that creates observable filtered lists that stay up-to-date with a source list.
+**can-derive** is a plugin that creates observable filtered lists that stay
+up-to-date with a source list.
 
-For example, a todo list might contain items with a `completed` property. `can.List.filter` by default can generate a new can.List containing only completed items, but it is not tied to the source list. With can-derive, `can.List.dFilter` will change when the source list changes.
+For example, a todo list might contain items with a `completed` property.
+`can.List.filter` by default can generate a new can.List containing only
+completed items, but it is not tied to the source list. With can-derive,
+`can.List.dFilter` will change when the source list changes.
 
-**can-derive** is ideal for cases where the source list contains at least 10 items and is expected to change.
+**can-derive** is ideal for cases where the source list contains at least
+10 items and is expected to change.
 
 ## Install
 
@@ -14,66 +19,79 @@ Use npm to install `can-derive`:
 
 ## Use
 
-Use `require` in Node/Browserify workflows to import the `can-derive` plugin like:
+Use `require` in Node/Browserify workflows to import the `can-derive` plugin
+like:
 
 ```
 require('can-derive');
 ```
 
-Use `define`, `require`, or `import` in [StealJS](http://stealjs.com/) workflows to import the `can-derive` plugin like:
+Use `define`, `require`, or `import` in [StealJS](http://stealjs.com/) workflows
+to import the `can-derive` plugin like:
 
 ```
 import 'can-derive';
 ```
 
-Once you've imported `can-derive` into your project, simply use `can.List.filter` to generate a derived list based on a `filter` function. The following example derives a list of completed items from a todo list:
-```
-var sourceList = new can.List([{name: "dishes", complete: true}, 
-                               {name: "lawn", complete: false}, 
-                              ...])
+Once you've imported `can-derive` into your project, simply use
+`can.List.dFilter` to generate a derived list based on a `predicate` function.
+The following example derives a list of completed items from a todo list:
 
-var completed = sourceList.filter(function(todo){
-  return todo.attr("complete");
+```
+var sourceList = new can.List([
+    { name: 'Hop', complete: true },
+    { name: 'Skip', complete: false },
+    //...
+]);
+
+var completed = sourceList.filter(function(todo) {
+    return todo.attr("complete") === true;
 });
 ```
 
-Any changes to `sourceList` will automatically update the derived `completed` list:
+Any changes to `sourceList` will automatically update the derived `completed`
+list:
+
 ```
-completed.bind('add', function(ev, newItems){
-	console.log(newItems);
+completed.bind('add', function(ev, newItems) {
+    console.log(newItems.length, 'item(s) added');
 });
 
-sourceList.push({name: "cook", complete: true}, {name: "clean", complete: false});
-// `{name: "cook", complete: true}`
+sourceList.push({ name: 'Jump', complete: true },
+    { name: 'Sleep', complete: false }); //-> "1 item(s) added"
 ```
 
 ### With can.Map.define
 
-If you're using the [can.Map.define plugin](http://canjs.com/docs/can.Map.prototype.define.html), you can define a derived list like so:
+If you're using the [can.Map.define
+plugin](http://canjs.com/docs/can.Map.prototype.define.html), you can define a
+derived list like so:
 
 ```
 {
-	define: {
-		todos: {
-			Value: can.List
-		},
-		completedTodos: {
-			get: function() {
-				return this.attr('todos').dFilter(function(todo){
-					return todo.attr('complete');
-				});
-			}
-		}
-	}
+    define: {
+        todos: {
+            Value: can.List
+        },
+        completedTodos: {
+            get: function() {
+                return this.attr('todos').dFilter(function(todo){
+                    return todo.attr('complete') === true;
+                });
+            }
+        }
+    }
 }
 ```
 
 Note: The `can-derive` plugin ensures that the define plugin's `get` method will
-not observe "length" like it would a traditional [can.List](http://canjs.com/docs/can.List.html).
+not observe "length" like it would a traditional [can.List](http://canjs.com/docs/can.List.html)
+when calling `.filter()`.
 
 ## API
 
-The `can-derive` plugin adds the `dFilter` method to `can.List.prototype`, so all filtered lists are derived from a `can.List`.
+The `can-derive` plugin adds the `dFilter` method to `can.List.prototype`, so
+all filtered lists are derived from a `can.List`.
 
 ### dFilter
 
@@ -83,58 +101,70 @@ Generates a derived list based on a predicate function.
 
 ### attr
 
-`derivedList.attr() --> Array`
+`derivedList.attr() -> Array`
 
 Gets an array of all the elements in the derived list.
 
-`derivedList.attr(index) --> Object`
+`derivedList.attr(index) -> Object`
 
-Reads an element from an index on the filtered list. This references the *element in the source list* that *is at the specified index in the filtered list*.
+Reads an element from an index on the filtered list. This references the
+*element in the source list* that *is at the specified index in the filtered
+list*.
 
 ### each
 
-`derivedList.each(fn) --> DerivedList`
+`derivedList.each(fn) -> DerivedList`
 
-Iterates through the DerivedList, calling a function for each element. The elements provided inside the function will be the elements *in the source list*.
+Iterates through the DerivedList, calling a function for each element. The
+elements provided inside the function will be the elements *in the source list*.
 
 ### Other can.List methods
 
-Since DerivedList inherits from [can.List](http://canjs.com/docs/can.List.html), the following methods are also available:
+Since DerivedList inherits from [can.List](http://canjs.com/docs/can.List.html),
+the following methods are also available:
 
-- [filter](http://canjs.com/docs/can.List.prototype.filter.html)
-- [indexOf](http://canjs.com/docs/can.List.prototype.indexOf.html)
-- [map](http://canjs.com/docs/can.List.prototype.map.html)
-- [replace](http://canjs.com/docs/can.List.prototype.replace.html)
-- [slice](http://canjs.com/docs/can.List.prototype.slice.html)
+- [`.filter()`](http://canjs.com/docs/can.List.prototype.filter.html)
+- [`.indexOf()`](http://canjs.com/docs/can.List.prototype.indexOf.html)
+- [`.map()`](http://canjs.com/docs/can.List.prototype.map.html)
+- [`.replace()`](http://canjs.com/docs/can.List.prototype.replace.html)
+- [`.slice()`](http://canjs.com/docs/can.List.prototype.slice.html)
 
 ### Disabled can.List methods
 
-The filtered list is not changed manually, but is maintained as the source list changes. Because of this, the following `can.List` methods are disabled:
+The filtered list is not changed manually, but is maintained as the source list
+changes. Because of this, the following `can.List` methods are disabled:
 
-- push
-- pop
-- shift
-- unshift
-- splice
+- `.push()`
+- `.pop()`
+- `.shift()`
+- `.unshift()`
+- `.splice()`
 
 ## Performance
 
-`can-derive` optimizes for insertions and removals, completing them in `O(log n)` time. This means that changes to the source list will automatically update the derived list in `O(log n)` time, compared to the standard `O(n)` time you would expect in other implementations.
+`can-derive` optimizes for insertions and removals, completing them in `O(log n)`
+time. This means that changes to the source list will automatically update the
+derived list in `O(log n)` time, compared to the standard `O(n)` time you would
+expect in other implementations.
 
 It does this by:
 
-- Keeping the derived list in a red-black tree
-- Listening for additions or removals in the source list
-- Listening to when the result of the predicate function changes for any item
+- Keeping the derived list in a red-black tree Listening for additions or
+- removals in the source list Listening to when the result of the predicate
+- function changes for any item
 
-This algorithm was originally discussed in [this StackExchange thread](http://cs.stackexchange.com/questions/43447/order-preserving-update-of-a-sublist-of-a-list-of-mutable-objects-in-sublinear-t/44502#44502).
+This algorithm was originally discussed in [this StackExchange
+thread](http://cs.stackexchange.com/questions/43447/order-preserving-update-of-a
+-sublist-of-a-list-of-mutable-objects-in-sublinear-t/44502#44502).
 
 ### When to Use
 
-In general, it is preferable to use `can-derive` over alternative approaches when:
+In general, it is preferable to use `can-derive` over alternative approaches
+when:
 
 - Your source list contains 10 or more items
-- You need to know how the filtered list changed, for instance when rendering in the DOM.
+- You need to know how the filtered list changed, for instance when rendering
+  in the DOM.
 
 
 ## Contributing
@@ -145,4 +175,4 @@ To set up your dev environment:
 2. Run `npm install`.
 3. Open `list/test.html` in your browser. Everything should pass.
 4. Run `npm test`. Everything should pass.
-5. Run `npm run-script build`. Everything should build ok 
+5. Run `npm run-script build`. Everything should build ok

@@ -83,7 +83,7 @@ var testResults = new can.List([
     new ResultMap({ numberOfItems: 10000 }),
 ]);
 
-var benchmarkSuite = new Benchmark.Suite('can.derive.List.filter')
+var benchmarkSuite = new Benchmark.Suite('can.derive.List.dFilter')
     .on('cycle', function (ev) {
         var benchmark = ev.target;
         var averageMs = benchmark.stats.mean * 1000;
@@ -128,10 +128,10 @@ var setupBenchmarks = function () {
                     var values = this.makeArray(numberOfItems);
                     var needle = this.makeItem(numberOfItems - 1);
                     var predicateFn = this.makePredicateFn(needle);
-                    var source = new can.derive.List(values);
+                    var source = new can.List(values);
                 },
                 fn: function () {
-                    var filtered = source.filter(predicateFn);
+                    var filtered = source.dFilter(predicateFn);
 
                     if (filtered.attr('length') !== 1) {
                         throw new Error('Abort');
@@ -188,8 +188,8 @@ var setupBenchmarks = function () {
                     var values = this.makeArray(numberOfItems);
                     var needle = this.makeItem(numberOfItems - 1);
                     var predicateFn = this.makePredicateFn(needle);
-                    var source = new can.derive.List(values);
-                    var filtered = source.filter(predicateFn);
+                    var source = new can.List(values);
+                    var filtered = source.dFilter(predicateFn);
                 },
                 fn: function () {
 
