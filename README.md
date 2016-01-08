@@ -4,18 +4,24 @@
 up-to-date with a source list.
 
 For example, a todo list might contain items with a `completed` property.
-`can.List.filter` by default can generate a new can.List containing only
-completed items, but it is not tied to the source list. With can-derive,
-`can.List.dFilter` will change when the source list changes.
+Traditionally `can.List.filter` enables you to return a new `can.List`
+containing only "completed" items. However, if the source list were to
+change in any way - for instance via an "add" or "remove" - the filtered
+`can.List` of "completed" items may become an innaccurate representation
+of the source list. The same filtered list of "completed" items created
+with `can-derive`'s `.dFilter` would always be an accurate representation
+of with the source, no matter how it was manipulated.
 
 **can-derive** is ideal for cases where the source list contains at least
-10 items and is expected to change.
+10 items and is expected to be "changed" frequently (3 or more times).
 
 ## Install
 
 Use npm to install `can-derive`:
 
-> npm install can-derive --save
+```
+npm install can-derive --save
+```
 
 ## Use
 
