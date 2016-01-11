@@ -78,9 +78,9 @@ var ResultMap = can.Map.extend({
 });
 
 var testResults = new can.List([
-    new ResultMap({ numberOfItems: 100 }),
-    new ResultMap({ numberOfItems: 1000 }),
-    new ResultMap({ numberOfItems: 10000 }),
+    // new ResultMap({ numberOfItems: 100 }),
+    // new ResultMap({ numberOfItems: 1000 }),
+    new ResultMap({ numberOfItems: 15000 }),
 ]);
 
 var benchmarkSuite = new Benchmark.Suite('can.derive.List.dFilter')
@@ -157,6 +157,7 @@ var setupBenchmarks = function () {
                         return item.fullName() !== needle.fullName();
                     }
                     var oldFiltered = source.filter(predicateFn);
+                    window.count = 0;
                 },
                 fn: function () {
 
@@ -171,8 +172,23 @@ var setupBenchmarks = function () {
                     // http://jsbin.com/yujabaqabi/edit?js,console
                     var patch = this.diff(oldFiltered, newFiltered);
 
+
+                    patch.forEach(function (diff) {
+                        if (diff.deleteCount !== 1) {
+                            throw new Error('Abort');
+                        }
+                        if (diff.index !== numberOfItems - 2) {
+                            throw new Error('Abort');
+                        }
+                        if (diff.insert.length !== 0) {
+                            throw new Error('Abort');
+                        }
+
+                        window.count ++;
+                    });
+
                     // Change the value so that it PASSES the predicate test
-                    source[numberOfItems - 2].attr('id', (0).toString(16));
+                    source[numberOfItems - 2].attr('id', (Math.random() + 1).toString(16));
                 }
             }, utils));
         }

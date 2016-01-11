@@ -463,3 +463,30 @@ test('Can be used inside a define "get" method', function () {
     ok(completed !== map.attr('completed'),
         'Derived list instance has changed');
 });
+
+test('Returned list is read-only', function () {
+    var list = new can.List(['a', 'b', 'c']);
+    var filtered = list.dFilter(function (value) {
+        return value === 'b';
+    });
+    var expectedLength = filtered.attr('length');
+
+    filtered.push({ foo: 'bar'});
+    equal(filtered.attr('length'), expectedLength, '.push() had no effect');
+
+    filtered.pop();
+    equal(filtered.attr('length'), expectedLength, '.pop() had no effect');
+
+    filtered.shift();
+    equal(filtered.attr('length'), expectedLength, '.shift() had no effect');
+
+    filtered.unshift({ yo: 'ho' });
+    equal(filtered.attr('length'), expectedLength, '.unshift() had no effect');
+
+    filtered.splice(0, 1);
+    equal(filtered.attr('length'), expectedLength, '.splice() had no effect');
+
+    filtered.replace(['a', 'b', 'c']);
+    equal(filtered.attr('length'), expectedLength, '.replace() had no effect');
+
+});

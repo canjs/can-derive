@@ -36,6 +36,14 @@ __predicateObserve = function (obj, event) {
     return __observe.call(this, obj, event);
 };
 
+var eachNodesOrItems = function (source, iterator, context) {
+    if (source instanceof can.RBTreeList) {
+        return source.eachNode(iterator, context);
+    } else {
+        return can.each.apply(can.each, arguments);
+    }
+};
+
 // Use a tree so that items are sorted by the source list's
 // index in O(log(n)) time
 DerivedList = RBTreeList.extend({
@@ -87,7 +95,7 @@ DerivedList = RBTreeList.extend({
 
     init: function (sourceList, initializeWithoutItems) {
 
-        var self = this;
+        var context = this;
         var initArgs = [];
         var initializeWithItems = !initializeWithoutItems;
 
@@ -99,8 +107,11 @@ DerivedList = RBTreeList.extend({
         if (initializeWithItems) {
             var initialItems = [];
 
+            // `sourceList` can be either a native JS array, a `can.List, or
+            // a `can.RBTreeList`, thus the `can.each` and not
+            // `sourceList.each`
             can.each(sourceList, function (value, index) {
-                initialItems[index] = self.describeSourceItem(value, index);
+                initialItems[index] = context.describeSourceItem(value, index);
             });
 
             initArgs[0] = initialItems;
@@ -167,7 +178,7 @@ DerivedList = RBTreeList.extend({
     addItems: function (items, offset) {
         var self = this;
 
-        can.each(items, function (item, i) {
+        eachNodesOrItems(items, function (item, i) {
             self.addItem(item, offset + i);
         });
     },
@@ -263,6 +274,7 @@ DerivedList = RBTreeList.extend({
     shift: can.noop,
     unshift: can.noop,
     splice: can.noop,
+    removeAttr: can.noop,
 
     _printIndexesValue: function (node) {
         return node.data.value;
@@ -424,7 +436,7 @@ FilteredList = DerivedList.extend({
 
     // Iterate over the sourceItems' values instead of the node's data
     each: function (callback) {
-        RBTreeList.prototype.each.call(this, function (node, i) {
+        RBTreeList.prototype.eachNode.call(this, function (node, i) {
             return callback(node.data.value, i);
         });
     },

@@ -17,6 +17,19 @@ representation of with the source, no matter how it was manipulated.
 
 See it in action on <a href="http://jsbin.com/dinisu/4/edit?js,console" target="_blank">JSBin</a>.
 
+> - [Install](#install)
+> - [Use](#use)
+> - [With can.Map.define](#with-canmapdefine)
+>   - [API](#api)
+>     - [can.List](#canlist)
+>       - [.dFilter()](#dfilter)
+>     - [DerivedList](#derivedlist)
+>       - [Inherited can.RBTreeList methods](#inherited-canrbtreelist-methods)
+>       - [Disabled can.RBTreeList methods](#disabled-canrbtreelist-methods)
+> - [Performance](#performance)
+> - [When to Use](#when-to-use)
+> - [Contributing](#contributing)
+
 ## Install
 
 Use npm to install `can-derive`:
@@ -102,51 +115,46 @@ when calling `.filter()`.
 
 #### .dFilter()
 
-`list.filter(predicateFn) -> DerivedList`
+`sourceList.filter(predicateFn) -> DerivedList`
 
-Generates a derived list based on the specified predicate function.
+Similar to [`.filter()`](https://github.com/canjs/can-derive#filter) except
+that the returned `DerivedList` is bound to `sourceList`.
 
+Returns a `DerivedList`.
 
 ### DerivedList
 
-#### .attr()
+#### Inherited can.RBTreeList methods
 
-`derivedList.attr() -> Array`
+Since `DerivedList` inherits from [can.RBTreeList](https://github.com/canjs/can-derive),
+the following methods are available:
 
-Gets an array of all the elements in the derived list.
+- [`.attr()`](https://github.com/canjs/can-derive#attr)
+- [`.each()`](https://github.com/canjs/can-derive#each)
+- [`.eachNode()`](https://github.com/canjs/can-derive#eachnode)
+- [`.filter()`](https://github.com/canjs/can-derive#filter)
+- [`.indexOf()`](https://github.com/canjs/can-derive#indexof)
+- [`.indexOfNode()`](https://github.com/canjs/can-derive#indexofnode)
+- [`.map()`](https://github.com/canjs/can-derive#map)
+- [`.printIndexes()`](https://github.com/canjs/can-derive#printindexes)
+- [`.printColors()`](https://github.com/canjs/can-derive#printcolors)
+- [`.printParents()`](https://github.com/canjs/can-derive#printparents)
+- [`.printLinks()`](https://github.com/canjs/can-derive#printlinks)
+- `.slice()` *(coming soon)*
 
-`derivedList.attr(index) -> Object`
+#### Disabled can.RBTreeList methods
 
-Returns the item in the filtered list at the specified index.
-
-#### .each()
-
-`derivedList.each(fn) -> DerivedList`
-
-Iterates through the DerivedList, calling a function for each element. The
-elements provided inside the function will be the elements *in the source list*.
-
-### Other can.List methods
-
-Since DerivedList inherits from [can.List](http://canjs.com/docs/can.List.html),
-the following methods are also available:
-
-- [`.filter()`](http://canjs.com/docs/can.List.prototype.filter.html)
-- [`.indexOf()`](http://canjs.com/docs/can.List.prototype.indexOf.html)
-- [`.map()`](http://canjs.com/docs/can.List.prototype.map.html)
-- [`.replace()`](http://canjs.com/docs/can.List.prototype.replace.html)
-- [`.slice()`](http://canjs.com/docs/can.List.prototype.slice.html)
-
-### Disabled can.List methods
-
-The filtered list is not changed manually, but is maintained as the source list
-changes. Because of this, the following `can.List` methods are disabled:
+A `DerivedList` is bound to its source list and manipulted as it changes.
+Because of this, it is read-only and the following `can.RBTreeList`
+methods are disabled:
 
 - `.push()`
 - `.pop()`
+- `.removeAttr()`
+- `.replace()`
 - `.shift()`
-- `.unshift()`
 - `.splice()`
+- `.unshift()`
 
 ## Performance
 
@@ -157,9 +165,9 @@ expect in other implementations.
 
 It does this by:
 
-- Keeping the derived list in a red-black tree Listening for additions or
-- removals in the source list Listening to when the result of the predicate
-- function changes for any item
+- Keeping the derived list in a red-black tree
+- Listening for additions or removals in the source list
+- Listening for predicate function result changes for any item
 
 This algorithm was originally discussed in [this StackExchange
 thread](http://cs.stackexchange.com/questions/43447/order-preserving-update-of-a
