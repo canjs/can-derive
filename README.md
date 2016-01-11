@@ -126,20 +126,20 @@ Returns a `DerivedList`.
 
 #### Inherited can.RBTreeList methods
 
-Since `DerivedList` inherits from [can.RBTreeList](https://github.com/canjs/can-derive),
+Since `DerivedList` inherits from [can.RBTreeList](https://github.com/canjs/can-binarytree#canrbtreelist),
 the following methods are available:
 
-- [`.attr()`](https://github.com/canjs/can-derive#attr)
-- [`.each()`](https://github.com/canjs/can-derive#each)
-- [`.eachNode()`](https://github.com/canjs/can-derive#eachnode)
-- [`.filter()`](https://github.com/canjs/can-derive#filter)
-- [`.indexOf()`](https://github.com/canjs/can-derive#indexof)
-- [`.indexOfNode()`](https://github.com/canjs/can-derive#indexofnode)
-- [`.map()`](https://github.com/canjs/can-derive#map)
-- [`.printIndexes()`](https://github.com/canjs/can-derive#printindexes)
-- [`.printColors()`](https://github.com/canjs/can-derive#printcolors)
-- [`.printParents()`](https://github.com/canjs/can-derive#printparents)
-- [`.printLinks()`](https://github.com/canjs/can-derive#printlinks)
+- [`.attr()`](https://github.com/canjs/can-binarytree#attr)
+- [`.each()`](https://github.com/canjs/can-binarytree#each)
+- [`.eachNode()`](https://github.com/canjs/can-binarytree#eachnode)
+- [`.filter()`](https://github.com/canjs/can-binarytree#filter)
+- [`.indexOf()`](https://github.com/canjs/can-binarytree#indexof)
+- [`.indexOfNode()`](https://github.com/canjs/can-binarytree#indexofnode)
+- [`.map()`](https://github.com/canjs/can-binarytree#map)
+- [`.printIndexes()`](https://github.com/canjs/can-binarytree#printindexes)
+- [`.printColors()`](https://github.com/canjs/can-binarytree#printcolors)
+- [`.printParents()`](https://github.com/canjs/can-binarytree#printparents)
+- [`.printLinks()`](https://github.com/canjs/can-binarytree#printlinks)
 - `.slice()` *(coming soon)*
 
 #### Disabled can.RBTreeList methods
