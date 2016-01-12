@@ -44,14 +44,14 @@ npm install can-derive --save
 Use `require` in Node/Browserify workflows to import the `can-derive` plugin
 like:
 
-```
+```js
 require('can-derive');
 ```
 
 Use `define`, `require`, or `import` in [StealJS](http://stealjs.com/) workflows
 to import the `can-derive` plugin like:
 
-```
+```js
 import 'can-derive';
 ```
 
@@ -59,7 +59,7 @@ Once you've imported `can-derive` into your project, simply use
 `can.List.dFilter` to generate a derived list based on a `predicate` function.
 The following example derives a list of completed items from a todo list:
 
-```
+```js
 var sourceList = new can.List([
     { name: 'Hop', complete: true },
     { name: 'Skip', complete: false },
@@ -74,7 +74,7 @@ var completed = sourceList.filter(function(todo) {
 Any changes to `sourceList` will automatically update the derived `completed`
 list:
 
-```
+```js
 completed.bind('add', function(ev, newItems) {
     console.log(newItems.length, 'item(s) added');
 });
@@ -89,7 +89,7 @@ If you're using the [can.Map.define
 plugin](http://canjs.com/docs/can.Map.prototype.define.html), you can define a
 derived list like so:
 
-```
+```js
 {
     define: {
         todos: {
@@ -116,13 +116,13 @@ when calling `.filter()`.
 Unlike `can.List` and `Array`, indexes of a `FilteredList` **cannot** be
 accessed using bracket notation:
 
-```
+```js
 filteredList[1]; //-> undefined
 ```
 
 To access a `FilteredList`'s values, use [`.attr()`](https://github.com/canjs/can-binarytree#attr):
 
-```
+```js
 filteredList.attr(); //-> ["a", "b", "c"]
 filteredList.attr(0); //-> "a"
 filteredList.attr(1); //-> "b"
@@ -133,7 +133,6 @@ filteredList.attr('length'); //-> 3
 This is due to the fact that a `FilteredList` inherits a [`can.RBTreeList`](https://github.com/canjs/can-binarytree#canrbtreelist)
 and stores its values in a [Red-black tree](https://en.wikipedia.org/wiki/Red%E2%80%93black_tree)
 for [performance](#performance) - rather than a series of numeric keys.
-
 
 
 ## API
