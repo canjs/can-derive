@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "can": "^2.3.0",
-    "can-binarytree": "^0.0.0"
+    "can-binarytree": "^0.0"
   },
   "devDependencies": {
     "benchmark": "1.0.0",
