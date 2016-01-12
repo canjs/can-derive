@@ -6,7 +6,7 @@ require('can/util/util');
 var __observe = can.__observe;
 var __observeAbstractValues = false;
 var _triggerChange, __observeException, __predicateObserve,
-    DerivedList, FilteredList, DerivableList, ObservedPredicate;
+    DerivedList, FilteredList, ObservedPredicate;
 
 
 // Dispatch a `__modified` event alongside all other `can.Map` events as
