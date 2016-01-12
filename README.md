@@ -1,5 +1,7 @@
 # can-derive
 
+[![Build Status](https://travis-ci.org/canjs/can-derive.svg?branch=master)](https://travis-ci.org/canjs/can-derive)
+
 **can-derive** is a plugin that creates observable filtered lists remain
 in sync with their original source list.
 
