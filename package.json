@@ -27,7 +27,7 @@
     "steal-qunit": "0.0.2",
     "steal-tools": "0.13.0",
     "system-npm": "0.3.0",
-    "testee": "0.2.0"
+    "testee": "^0.2.0"
   },
   "system": {
     "meta": {
