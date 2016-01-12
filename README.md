@@ -20,10 +20,11 @@ See it in action on <a href="http://jsbin.com/dinisu/4/edit?js,console" target="
 > - [Install](#install)
 > - [Use](#use)
 > - [With can.Map.define](#with-canmapdefine)
+> - [Accessing FilteredList values](#accessing-derivedlist-values)
 >   - [API](#api)
 >     - [`can.List`](#canlist)
 >       - [`.dFilter()`](#dfilter)
->     - [`DerivedList`](#derivedlist)
+>     - [`FilteredList`](#derivedlist)
 >       - [Inherited can.RBTreeList methods](#inherited-canrbtreelist-methods)
 >       - [Disabled can.RBTreeList methods](#disabled-canrbtreelist-methods)
 > - [Performance](#performance)
@@ -109,24 +110,50 @@ Note: The `can-derive` plugin ensures that the define plugin's `get` method will
 not observe "length" like it would a traditional [can.List](http://canjs.com/docs/can.List.html)
 when calling `.filter()`.
 
+
+### Accessing FilteredList values
+
+Unlike `can.List` and `Array`, indexes of a `FilteredList` **cannot** be
+accessed using bracket notation:
+
+```
+filteredList[1]; //-> undefined
+```
+
+To access a `FilteredList`'s values, use [`.attr()`](https://github.com/canjs/can-binarytree#attr):
+
+```
+filteredList.attr(); //-> ["a", "b", "c"]
+filteredList.attr(0); //-> "a"
+filteredList.attr(1); //-> "b"
+filteredList.attr(2); //-> "c"
+filteredList.attr('length'); //-> 3
+```
+
+This is due to the fact that a `FilteredList` inherits a [`can.RBTreeList`](https://github.com/canjs/can-binarytree#canrbtreelist)
+and stores its values in a [Red-black tree](https://en.wikipedia.org/wiki/Red%E2%80%93black_tree)
+for [performance](#performance), rather than a series of numeric keys.
+
+
+
 ## API
 
 ### can.List
 
 #### .dFilter()
 
-`sourceList.filter(predicateFn) -> DerivedList`
+`sourceList.filter(predicateFn) -> FilteredList`
 
 Similar to [`.filter()`](https://github.com/canjs/can-derive#filter) except
-that the returned `DerivedList` is bound to `sourceList`.
+that the returned `FilteredList` is bound to `sourceList`.
 
-Returns a `DerivedList`.
+Returns a `FilteredList`.
 
-### DerivedList
+### FilteredList
 
 #### Inherited can.RBTreeList methods
 
-Since `DerivedList` inherits from [can.RBTreeList](https://github.com/canjs/can-binarytree#canrbtreelist),
+Since `FilteredList` inherits from [can.RBTreeList](https://github.com/canjs/can-binarytree#canrbtreelist),
 the following methods are available:
 
 - [`.attr()`](https://github.com/canjs/can-binarytree#attr)
@@ -140,7 +167,7 @@ the following methods are available:
 
 #### Disabled can.RBTreeList methods
 
-A `DerivedList` is bound to its source list and manipulted as it changes.
+A `FilteredList` is bound to its source list and manipulted as it changes.
 Because of this, it is read-only and the following `can.RBTreeList`
 methods are disabled:
 
@@ -161,7 +188,7 @@ expect in other implementations.
 
 It does this by:
 
-- Keeping the derived list in a red-black tree
+- Keeping the derived list in a [Red-black tree](https://en.wikipedia.org/wiki/Red%E2%80%93black_tree)
 - Listening for additions or removals in the source list
 - Listening for predicate function result changes for any item
 
