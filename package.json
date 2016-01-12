@@ -44,9 +44,9 @@
     "release:patch": "npm version patch && npm publish",
     "release:minor": "npm version minor && npm publish",
     "release:major": "npm version major && npm publish",
-    "jshint": "jshint list/. --config",
+    "jshint": "jshint list/. can-derive.js --config",
     "testee": "testee list/test.html --browsers phantom",
-    "test": "npm run testee",
+    "test": "npm run jshint && npm run testee",
     "build": "node build.js"
   }
 }

@@ -104,15 +104,23 @@ var setupBenchmarks = function () {
                 key: 'nativePopulate',
                 name: 'Native populate (' + results.numberOfItems + ' items)',
                 setup: function () {
+                    /* jshint ignore:start */
+
                     var numberOfItems = this.results.attr('numberOfItems');
                     var source = this.makeArray(numberOfItems);
                     var needle = this.makeItem(numberOfItems - 1);
                     var predicateFn = this.makePredicateFn(needle);
+
+                    /* jshint ignore:end */
                 },
                 fn: function () {
+                    /* jshint ignore:start */
+
                     var filtered = source.filter(predicateFn);
 
                     if (filtered.length !== 1) { throw new Error('Abort'); }
+
+                    /* jshint ignore:end */
                 }
             }, utils));
 
@@ -124,13 +132,19 @@ var setupBenchmarks = function () {
                 key: 'derivePopulate',
                 name: 'Derived populate (' + results.numberOfItems + ' items)',
                 setup: function () {
+                    /* jshint ignore:start */
+
                     var numberOfItems = this.results.attr('numberOfItems');
                     var values = this.makeArray(numberOfItems);
                     var needle = this.makeItem(numberOfItems - 1);
                     var predicateFn = this.makePredicateFn(needle);
                     var source = new can.List(values);
+
+                    /* jshint ignore:end */
                 },
                 fn: function () {
+                    /* jshint ignore:start */
+
                     var filtered = source.dFilter(predicateFn);
 
                     if (filtered.attr('length') !== 1) {
@@ -139,6 +153,8 @@ var setupBenchmarks = function () {
 
                     // Remove reference so that next filter starts from scratch
                     delete source._derivedList;
+
+                    /* jshint ignore:end */
                 }
             }, utils));
         }
@@ -150,6 +166,8 @@ var setupBenchmarks = function () {
                 name: 'Native update (' + results.numberOfItems + ' items)',
                 diff: diff,
                 setup: function () {
+                    /* jshint ignore:start */
+
                     var numberOfItems = this.results.attr('numberOfItems');
                     var source = this.makeArray(numberOfItems);
                     var needle = this.makeItem(numberOfItems - 1);
@@ -158,8 +176,11 @@ var setupBenchmarks = function () {
                     }
                     var oldFiltered = source.filter(predicateFn);
                     window.count = 0;
+
+                    /* jshint ignore:end */
                 },
                 fn: function () {
+                    /* jshint ignore:start */
 
                     // Change the value so that it FAILS the predicate test
                     source[numberOfItems - 2].attr('id',
@@ -189,6 +210,8 @@ var setupBenchmarks = function () {
 
                     // Change the value so that it PASSES the predicate test
                     source[numberOfItems - 2].attr('id', (Math.random() + 1).toString(16));
+
+                    /* jshint ignore:end */
                 }
             }, utils));
         }
@@ -199,6 +222,7 @@ var setupBenchmarks = function () {
                 key: 'deriveUpdate',
                 name: 'Derived update (' + results.numberOfItems + ' items)',
                 setup: function () {
+                    /* jshint ignore:start */
 
                     var numberOfItems = this.results.attr('numberOfItems');
                     var values = this.makeArray(numberOfItems);
@@ -206,8 +230,11 @@ var setupBenchmarks = function () {
                     var predicateFn = this.makePredicateFn(needle);
                     var source = new can.List(values);
                     var filtered = source.dFilter(predicateFn);
+
+                    /* jshint ignore:end */
                 },
                 fn: function () {
+                    /* jshint ignore:start */
 
                     if (filtered.attr('length') !== 1) {
                         throw new Error('Abort');
@@ -226,11 +253,15 @@ var setupBenchmarks = function () {
                     if (filtered.attr('length') !== 1) {
                         throw new Error('Abort');
                     }
+
+                    /* jshint ignore:end */
                 }
             }, utils));
         }
     });
-}
+
+    /* jshint ignore:end */
+};
 
 
 /**
@@ -304,4 +335,4 @@ can.Component.extend({
             this.attr('options').attr({}, true);
         }
     }
-})
+});

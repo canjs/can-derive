@@ -361,10 +361,11 @@ test('Predicate function can be passed an object and call a function', function 
     var predicateFn = function (value) {
       var result = value.fullName() === FILTERED_VALUE.fullName();
       return result;
-    }
+    };
+    var value;
 
     for (var i = 0; i < 10; i++) {
-      var value = new can.Map({
+      value = new can.Map({
         id: i.toString(16),
         firstName: 'Chris',
         lastName: 'Gomez',
@@ -375,8 +376,8 @@ test('Predicate function can be passed an object and call a function', function 
       });
       source.push(value);
     }
-    var FILTERED_VALUE = value;
 
+    var FILTERED_VALUE = value;
     var derived = source.dFilter(predicateFn);
 
     equal(derived.attr('length'), 1, 'Length is correct after initial filter');
