@@ -1,7 +1,7 @@
 # can-derive
 
-**can-derive** is a plugin that creates observable filtered lists that stay
-up-to-date with a source list.
+**can-derive** is a plugin that creates observable filtered lists remain
+in sync with their original source list.
 
 For example, a todo list might contain todo objects with a `completed` property.
 Traditionally `can.List.filter` enables you to create a new `can.List`
@@ -10,7 +10,7 @@ to change in any way - for instance via an "add" or "remove" - the returned
 `can.List` may become an innaccurate representation of the source list.
 The same filtered list of "completed" todo objects created
 with `can-derive`'s `can.List.dFilter` would always be an accurate
-representation of with the source, no matter how it was manipulated.
+representation of with the source list regardless of how it was manipulated.
 
 **can-derive** is ideal for cases where the source list contains at least
 10 items and is expected to be "changed" frequently (3 or more times).
@@ -45,6 +45,7 @@ Use `require` in Node/Browserify workflows to import the `can-derive` plugin
 like:
 
 ```js
+require('can');
 require('can-derive');
 ```
 
@@ -52,26 +53,28 @@ Use `define`, `require`, or `import` in [StealJS](http://stealjs.com/) workflows
 to import the `can-derive` plugin like:
 
 ```js
+import 'can';
 import 'can-derive';
 ```
 
-Once you've imported `can-derive` into your project, simply use
+Once you've imported `can-derive` into your project use
 `can.List.dFilter` to generate a derived list based on a `predicate` function.
-The following example derives a list of completed items from a todo list:
+The following example derives a list of "completed" items from a `can.List`
+of `todo` objects:
 
 ```js
-var sourceList = new can.List([
+var todos = new can.List([
     { name: 'Hop', complete: true },
     { name: 'Skip', complete: false },
     //...
 ]);
 
-var completed = sourceList.filter(function(todo) {
+var completed = todos.filter(function(todo) {
     return todo.attr("complete") === true;
 });
 ```
 
-Any changes to `sourceList` will automatically update the derived `completed`
+Any changes to `todos` will be propagated to the derived `completed`
 list:
 
 ```js
@@ -79,7 +82,7 @@ completed.bind('add', function(ev, newItems) {
     console.log(newItems.length, 'item(s) added');
 });
 
-sourceList.push({ name: 'Jump', complete: true },
+todos.push({ name: 'Jump', complete: true },
     { name: 'Sleep', complete: false }); //-> "1 item(s) added"
 ```
 
@@ -188,6 +191,7 @@ expect in other implementations.
 It does this by:
 
 - Keeping the derived list in a [Red-black tree](https://en.wikipedia.org/wiki/Red%E2%80%93black_tree)
+  modeled after an `Array`
 - Listening for additions or removals in the source list
 - Listening for predicate function result changes for any item
 
