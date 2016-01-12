@@ -132,7 +132,7 @@ filteredList.attr('length'); //-> 3
 
 This is due to the fact that a `FilteredList` inherits a [`can.RBTreeList`](https://github.com/canjs/can-binarytree#canrbtreelist)
 and stores its values in a [Red-black tree](https://en.wikipedia.org/wiki/Red%E2%80%93black_tree)
-for [performance](#performance), rather than a series of numeric keys.
+for [performance](#performance) - rather than a series of numeric keys.
 
 
 
