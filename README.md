@@ -136,11 +136,6 @@ the following methods are available:
 - [`.indexOf()`](https://github.com/canjs/can-binarytree#indexof)
 - [`.indexOfNode()`](https://github.com/canjs/can-binarytree#indexofnode)
 - [`.map()`](https://github.com/canjs/can-binarytree#map)
-- [`.print()`](https://github.com/canjs/can-binarytree#print)
-- [`.printIndexes()`](https://github.com/canjs/can-binarytree#printindexes)
-- [`.printColors()`](https://github.com/canjs/can-binarytree#printcolors)
-- [`.printParents()`](https://github.com/canjs/can-binarytree#printparents)
-- [`.printLinks()`](https://github.com/canjs/can-binarytree#printlinks)
 - `.slice()` *(coming soon)*
 
 #### Disabled can.RBTreeList methods

@@ -78,8 +78,8 @@ var ResultMap = can.Map.extend({
 });
 
 var testResults = new can.List([
-    // new ResultMap({ numberOfItems: 100 }),
-    // new ResultMap({ numberOfItems: 1000 }),
+    new ResultMap({ numberOfItems: 5000 }),
+    new ResultMap({ numberOfItems: 10000 }),
     new ResultMap({ numberOfItems: 15000 }),
 ]);
 
