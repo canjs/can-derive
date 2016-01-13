@@ -71,7 +71,7 @@ var todos = new can.List([
     //...
 ]);
 
-var completed = todos.filter(function(todo) {
+var completed = todos.dFilter(function(todo) {
     return todo.attr("complete") === true;
 });
 ```
