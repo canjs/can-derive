@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/canjs/can-derive.svg?branch=master)](https://travis-ci.org/canjs/can-derive)
 
-**can-derive** is a plugin that creates observable filtered lists remain
+**can-derive** is a plugin that creates observable filtered lists that remain
 in sync with their original source list.
 
 For example, a todo list might contain todo objects with a `completed` property.
