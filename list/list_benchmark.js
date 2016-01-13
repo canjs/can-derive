@@ -175,16 +175,18 @@ var setupBenchmarks = function () {
                         return item.fullName() !== needle.fullName();
                     }
                     var oldFiltered = source.filter(predicateFn);
-                    window.count = 0;
 
                     /* jshint ignore:end */
                 },
                 fn: function () {
                     /* jshint ignore:start */
 
+                    // Choose a random index to negate compiler optimization
+                    var affectedIndex =
+                        Math.round(Math.random() * (numberOfItems - 2));
+
                     // Change the value so that it FAILS the predicate test
-                    source[numberOfItems - 2].attr('id',
-                        (numberOfItems - 1).toString(16));
+                    source[affectedIndex].attr('id', needle.attr('id'));
 
                     var newFiltered = source.filter(predicateFn);
 
@@ -198,7 +200,7 @@ var setupBenchmarks = function () {
                         if (diff.deleteCount !== 1) {
                             throw new Error('Abort');
                         }
-                        if (diff.index !== numberOfItems - 2) {
+                        if (diff.index !== affectedIndex) {
                             throw new Error('Abort');
                         }
                         if (diff.insert.length !== 0) {
@@ -209,7 +211,7 @@ var setupBenchmarks = function () {
                     });
 
                     // Change the value so that it PASSES the predicate test
-                    source[numberOfItems - 2].attr('id', (Math.random() + 1).toString(16));
+                    source[affectedIndex].attr('id', -1);
 
                     /* jshint ignore:end */
                 }
