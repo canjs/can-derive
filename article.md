@@ -3,16 +3,22 @@
 ## Introduction
 
 The devices you use today to interact with the web communicate, process, and
-store more information more quickly than ever before. Despite this fact
+store more information quicker than ever before. Despite this fact,
 one factor remains constant: Performance is a product of efficiency.
 
-The derive plugin is CanJS' latest initiative to improve efficiency. In this
-article we'll introduce the problem that it solves and
+One of the most performance critical things a Javascript application can do
+is update the DOM efficiently. That means making the fewest number of DOM
+manipulations necessary to render a given application state.
+
+In this article we'll explain how CanJS updates the DOM in both simple and
+complex scenarios, what its limitations are, and how the derive plugin aims
+to address those issues.
+
 
 ## How state changes become DOM changes
 
 - Most back end API's provide a snapshot of a subset of data, and/or
-  a fire hose
+  a stream of events
 - It's up to JS to manage the relationship between that data and your
   application's state
 - Data transformations like `.sort()`, `.map()`, and `.filter()` are
@@ -24,7 +30,7 @@ article we'll introduce the problem that it solves and
 - Determining *specifically* what changed after the fact is inefficient
   (diffing)
 
-## How CanJS handles "change" efficiently
+## How CanJS handles simple changes
 
 In CanJS:
 
@@ -33,11 +39,11 @@ In CanJS:
 - Changes to state emit events like: "set", "add", "remove", "move", etc
 - The rendering engine is bound to state
 
-What this means is that CanJS' rendering engine inherently knows *specifically*
+What this means is that CanJS's rendering engine inherently knows *specifically*
 how the application state has "changed", which enables it to manipulate the
 fewest number of the DOM nodes necessary to reflect each specific state change.
 
-## Inefficient "change"
+## How CanJS handles complex changes
 
 Some operations create "change" that isn't inherently obvious. For
 example:
@@ -47,7 +53,7 @@ example:
 - `list.map()`
 
 Operations like these are highly inefficient because they "recreate"
-everything from scratch. This has several consequences:
+their results from scratch. This has several consequences:
 
 1. Regardless of the amount of change - whether it be a single property or
    entire list replacement - the same amount of work is required
@@ -59,3 +65,4 @@ differences between the latest result and the previous result - otherwise
 unnecessary DOM manipulations will be made - thus making these operations
 even more inefficient.
 
+## How the derive plugin handles complex changes
