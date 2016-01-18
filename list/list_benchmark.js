@@ -171,47 +171,24 @@ var setupBenchmarks = function () {
                     var numberOfItems = this.results.attr('numberOfItems');
                     var source = this.makeArray(numberOfItems);
                     var needle = this.makeItem(numberOfItems - 1);
-                    var predicateFn = function (item) {
+                    var predicateFn = function (item, index) {
                         return item.fullName() !== needle.fullName();
                     }
-                    var oldFiltered = source.filter(predicateFn);
+                    var oldFiltered = source;
+
+                    var newFiltered = source.slice(0)
+                    newFiltered.pop();
 
                     /* jshint ignore:end */
                 },
                 fn: function () {
                     /* jshint ignore:start */
 
-                    // Choose a random index to negate compiler optimization
-                    var affectedIndex =
-                        Math.round(Math.random() * (numberOfItems - 2));
-
-                    // Change the value so that it FAILS the predicate test
-                    source[affectedIndex].attr('id', needle.attr('id'));
-
-                    var newFiltered = source.filter(predicateFn);
-
                     // Do a diff to find out what changed
                     // NOTE: Diffing is pretty quick...
                     // http://jsbin.com/yujabaqabi/edit?js,console
                     var patch = this.diff(oldFiltered, newFiltered);
 
-
-                    patch.forEach(function (diff) {
-                        if (diff.deleteCount !== 1) {
-                            throw new Error('Abort');
-                        }
-                        if (diff.index !== affectedIndex) {
-                            throw new Error('Abort');
-                        }
-                        if (diff.insert.length !== 0) {
-                            throw new Error('Abort');
-                        }
-
-                        window.count ++;
-                    });
-
-                    // Change the value so that it PASSES the predicate test
-                    source[affectedIndex].attr('id', -1);
 
                     /* jshint ignore:end */
                 }
