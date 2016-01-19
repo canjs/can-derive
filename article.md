@@ -12,6 +12,7 @@ represent a web applications DOM.
 - [Mutable state changes](#mutable-state-changes)
 - [Immutable state changes](#immutable-state-changes)
 - [How changes differ between mutable and immutable state](#how-changes-differ-between-mutable-and-immutable-state)
+- [Why the specifics of a change matter](#why-the-specifics-of-a-change-matter)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
