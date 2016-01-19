@@ -48,7 +48,7 @@ overhead.
 | | Detect change | Identify change
 |---|---|---|
 | Mutable: | <1ms, O(1) | <1ms, O(1)
-| Immutable: | <1ms, O(n) | >=1ms, O(n)
+| Immutable: | <1ms, O(1) | >=1ms, O(n)
 
 
 
