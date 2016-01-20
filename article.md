@@ -1,4 +1,4 @@
-# Be proactive, not reactive - Identifying change faster with mutable state
+# Be proactive, not reactive - Faster apps with mutable state
 
 I'm going to show that observing changes on mutable state is
 much more efficient than comparing two immutable states
