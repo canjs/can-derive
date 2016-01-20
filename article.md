@@ -3,8 +3,8 @@
 I'm going to show that observing changes to a mutable state is
 much more efficient than comparing two immutable states
 after the change has occurred and therefore much better suited 
-to be used in web applications where the cost of DOM manipulation 
-is substantial. 
+to be used in web applications where the cost and frequency 
+of DOM manipulation is substantial. 
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
