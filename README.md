@@ -19,19 +19,25 @@ representation of with the source list regardless of how it was manipulated.
 
 See it in action on <a href="http://jsbin.com/dinisu/5/edit?js,console" target="_blank">JSBin</a>.
 
-> - [Install](#install)
-> - [Use](#use)
-> - [With can.Map.define](#with-canmapdefine)
-> - [Accessing FilteredList values](#accessing-filteredlist-values)
->   - [API](#api)
->     - [`can.List`](#canlist)
->       - [`.dFilter()`](#dfilter)
->     - [`FilteredList`](#filteredlist)
->       - [Inherited can.RBTreeList methods](#inherited-canrbtreelist-methods)
->       - [Disabled can.RBTreeList methods](#disabled-canrbtreelist-methods)
-> - [Performance](#performance)
-> - [When to Use](#when-to-use)
-> - [Contributing](#contributing)
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+
+- [Install](#install)
+- [Use](#use)
+  - [With can.Map.define](#with-canmapdefine)
+  - [Accessing FilteredList values](#accessing-filteredlist-values)
+- [API](#api)
+  - [can.List](#canlist)
+    - [.dFilter()](#dfilter)
+  - [FilteredList](#filteredlist)
+    - [Inherited can.RBTreeList methods](#inherited-canrbtreelist-methods)
+    - [Disabled can.RBTreeList methods](#disabled-canrbtreelist-methods)
+- [Performance](#performance)
+  - [When to Use](#when-to-use)
+- [Contributing](#contributing)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Install
 
