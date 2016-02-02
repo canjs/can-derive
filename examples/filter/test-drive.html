@@ -33,8 +33,8 @@
 <script src="../../node_modules/steal/steal.js"></script>
 <script src="./common.js"></script>
 <script type="text/javascript">
-steal('can', 'list', 'can/view/stache', function (can, List) {
-    var numbers = new List();
+steal('can', 'list', 'can/view/stache', function (can) {
+    var numbers = new can.List();
 
     $('#demo').append(can.view('main-template', {
       lists: [
@@ -44,25 +44,25 @@ steal('can', 'list', 'can/view/stache', function (can, List) {
         },
         {
             label: 'Even',
-            numbers: numbers.filter(function (number) {
+            numbers: numbers.dFilter(function (number) {
                 return number.attr('number') % 2 === 0;
             })
         },
         {
             label: 'Odd',
-            numbers: numbers.filter(function (number) {
+            numbers: numbers.dFilter(function (number) {
                 return number.attr('number') % 2 !== 0;
             })
         },
         {
             label: '< 50',
-            numbers: numbers.filter(function (number) {
+            numbers: numbers.dFilter(function (number) {
                 return number.attr('number') <= 50;
             })
         },
         {
             label: '> 50',
-            numbers: numbers.filter(function (number) {
+            numbers: numbers.dFilter(function (number) {
                 return number.attr('number') >= 50;
             })
         }

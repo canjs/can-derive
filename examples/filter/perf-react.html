@@ -12,41 +12,18 @@
     getInitialState: function() {
       return {
         numbers: this.createNumbers(this.props.dice),
-        i: 0,
-        updates: 0,
-        msecs: 0,
-        lastTick: 0,
-        fps: 0,
-        peak: -Infinity
+        i: 0
       };
     },
 
     updateNumbers: function(doUpdate) {
       this.setState(function(prevState, props) {
-        var now = performance.now();
-        var delta = now - prevState.lastTick;
-        var msecs = prevState.msecs + delta;
-        var fps = prevState.fps;
-        var updates = prevState.updates;
-
-        if (msecs >= 1000) {
-          fps = Math.round(updates / (msecs / 1000));
-          updates = msecs = 0;
-        }
-
-        if (doUpdate) {
-          prevState.numbers[prevState.i].number =
-            numbersLib.alternateNumber(prevState.numbers[prevState.i].number);
-        }
+        prevState.numbers[prevState.i].number =
+          numbersLib.alternateNumber(prevState.numbers[prevState.i].number);
 
         return {
-          fps: fps,
-          updates: updates + 1,
-          msecs: msecs,
-          lastTick: now,
           i: (prevState.i + 1) % props.dice,
-          numbers: prevState.numbers,
-          peak: Math.max(fps, prevState.peak)
+          numbers: prevState.numbers
         };
       });
     },
