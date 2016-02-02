@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="description" content="DOM update feel demo - can-derive">
+  <meta charset="utf-8">
+<!--
+Created using JS Bin
+http://jsbin.com
+
+Copyright (c) 2016 by akagomez (http://jsbin.com/yucaye/5/edit)
+
+Released under the MIT license: http://jsbin.mit-license.org
+-->
+    <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="http://todomvc.com/examples/canjs/node_modules/todomvc-common/base.css">
+  <link rel="stylesheet" href="http://todomvc.com/examples/canjs/node_modules/todomvc-app-css/index.css">
+
+<style id="jsbin-css">
+body {
+  padding: 15px;
+}
+
+h1 {
+  font-size: 30px !important;
+  line-height: 1.5em;
+  font-weight: 200 !important;
+  color: #ccc !important;
+}
+
+p {
+  position: absolute;
+  top: -45px;
+  width: 100%;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+  <section id="todoapp">
+    <todo-app>
+      <header id="header">
+        <h1>DOM update "feel" demo<br />(canjs + can-derive)</h1>
+        <p>
+          Mark a <i>todo</i> incompleted. Do you notice the delay?
+        </p>
+      </header>
+      <section id="main">
+        <ul id="todo-list">
+          <li class="todo">
+            <div class="view">
+              <input class="toggle" type="checkbox">
+              <label>Click "Run with JS" to begin test</label>
+            </div>
+          </li>
+        </ul>
+      </section>
+    </todo-app>
+  </section>
+  <footer id="info">
+    <p>Written by <a href="http://bitovi.com">Bitovi</a></p>
+    <p>An example from the article: <a href="http://blog.bitovi.com/category/open-source/">Be proactive, not reactive - Faster DOM updates via change propagation</a></p>
+  </footer>
+  <script id="todos-template" type="text/stache">
+    <ul id="todo-list">
+      {{#each completedTodos}}
+      <li class="todo {{#if completed}}completed{{/if}}">
+        <div class="view">
+          <input class="toggle" type="checkbox" {{#if completed}}checked{{/if}}>
+          <label>{{title}}</label>
+        </div>
+      </li>
+      {{/each}}
+    </ul>
+  </script>
+  <script src="https://rawgit.com/akagomez/38471ac9720a17b7546c/raw/21c308811d3e95dac38f42348dbb0aa434a246f4/random-todo.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.js"></script>
+  <script src="//canjs.com/release/master/can.jquery.js"></script>
+  <script src="//canjs.com/release/master/can.stache.js"></script>
+  <script src="https://rawgit.com/akagomez/can-binarytree/v0.0.9/dist/global/can-binarytree.js"></script>
+  <script src="https://rawgit.com/canjs/can-derive/v0.0.16/dist/global/can-derive.js"></script>
+<script>
+// noprotect
+
+console.clear();
+
+var state;
+
+function setupInitialState() {
+  var todos = [];
+  var numberOfTodos = 1000 * 10;
+
+  state = new can.Map({
+    cursor: 0,
+    todos: todos,
+    numberOfTodos: numberOfTodos
+  });
+
+  for (var i = 0; i < numberOfTodos; i++) {
+    todos.push({
+      id: i,
+      title: window.generateRandomTodo(),
+      completed: true
+    });
+  }
+
+  state.attr('todos', todos)
+  state.attr('completedTodos', state.attr('todos').dFilter(function (todo) {
+    return todo.attr('completed') === true;
+  }))
+}
+
+function changeState() {
+
+  var todo = state.attr('todos').attr(state.cursor);
+  todo.attr('completed', !todo.attr('completed'));
+
+  if (state.attr('cursor') >= state.attr('todos.length') - 1) {
+    state.attr('cursor', 0);
+  } else {
+    state.attr('cursor', state.attr('cursor') + 1);
+  }
+}
+
+function renderState ()  {
+  // renderer is a "renderer function"
+  var renderer = can.view('#todos-template');
+
+  // "renderer functions" render a template and return a
+  // document fragment.
+  var fragment = renderer(state);
+
+  document.getElementById('main').innerHTML = '';
+
+  // A document fragment is a collection of elements that can be
+  // used with jQuery or with normal DOM methods.
+  document.getElementById('main').appendChild(fragment);
+}
+
+var s = window.performance.now()
+console.profile('setup')
+setupInitialState();
+console.profileEnd('setup')
+console.log('Setup: ' + (window.performance.now() - s))
+
+var s = window.performance.now()
+console.profile('render')
+renderState();
+console.profileEnd('render')
+console.log('Render: ' + (window.performance.now() - s))
+
+$(document).on('change', 'input.toggle', function (ev) {
+
+  // Get the index of the toggled input element
+  var index = $(ev.currentTarget).closest('li').index();
+
+//   for (var i = 0; i < 5; i++) {
+    var s = window.performance.now();
+    console.profile('update')
+    // Update the state of the edited todo
+    state.attr('completedTodos.' + index + '.completed', false);
+    console.profileEnd('update')
+
+    console.log('Update: ' + (window.performance.now() - s));
+//   }
+})
+</script>
+
+</body>
+</html>
