@@ -129,28 +129,34 @@ DerivedList = RBTreeList.extend({
         this.syncValues();
     },
 
-    syncAdds: function (addInitialItems) {
+    unbindFromSource: function () {
+        this._source.unbind('add', this._addHandler);
+        this._source.unbind('remove', this._removeHandler);
+        delete this._source._derivedList;
+    },
 
-        var self = this;
+    syncAdds: function (addInitialItems) {
 
         if (addInitialItems) {
             this.addItems(this._source, 0);
         }
 
+        this._addHandler = can.proxy(function (ev, items, offset) {
+            this.addItems(items, offset);
+        }, this);
+
         // Add future items
-        this._source.bind('add', function (ev, items, offset) {
-            self.addItems(items, offset);
-        });
+        this._source.bind('add', this._addHandler);
     },
 
     syncRemoves: function () {
 
-        var self = this;
+        this._removeHandler = can.proxy(function (ev, items, offset) {
+            this.removeItems(items, offset);
+        }, this);
 
         // Remove future items
-        this._source.bind('remove', function (ev, items, offset) {
-            self.removeItems(items, offset);
-        });
+        this._source.bind('remove', this._removeHandler);
     },
 
 

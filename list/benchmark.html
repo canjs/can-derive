@@ -1,5 +1,5 @@
-<title>can.derive.List.filter Benchmarks</title>
-<h1>can.derive.List.filter Benchmarks</h1>
+<title>can.List.prototype.dFilter Benchmarks</title>
+<h1>can.List.prototype.dFilter Benchmarks</h1>
 
 <style type="text/css">
     ul {
@@ -26,37 +26,19 @@
         border: 1px solid #999;
         border-spacing: 0;
     }
+
+    #sandbox {
+        display: none;
+    }
 </style>
+
+<div id="sandbox"></div>
 
 <script id="benchmark-app" type="text/stache" can-autorender>
     <benchmark-options></benchmark-options>
 </script>
 
 <script id="benchmark-options-template" type="text/stache">
-    <ul>
-        <li>
-            <label>
-                <input type="checkbox" can-value="{options.runNativePopulate}">
-                Benchmark native populate?
-            </label>
-            <label>
-                <input type="checkbox" can-value="{options.runNativeUpdate}">
-                Benchmark native update?
-            </label>
-            <label>
-                <input type="checkbox" can-value="{options.runDerivePopulate}">
-                Benchmark derive populate?
-            </label>
-            <label>
-                <input type="checkbox" can-value="{options.runDeriveUpdate}">
-                Benchmark derive update?
-            </label>
-            <label>
-                <input type="checkbox" can-value="{options.startOnPageLoad}">
-                Start on page load?
-            </label>
-        </li>
-    </ul>
 
     <button can-click="{startBenchmarks}" {{#if running}}disabled{{/if}}>
         {{#if running}}
@@ -70,38 +52,98 @@
         Reset options
     </button>
 
+    <label>
+        <input type="checkbox" can-value="{options.startOnPageLoad}">
+        Start on page load?
+    </label>
+
     <h3>Results</h3>
 
     <table>
         <tr>
             <th></th>
             <th>
-                Populate (native)
+                <label>
+                    Native Populate <input type="checkbox" can-value="{options.runNativePopulate}" />
+                </label>
             </th>
             <th>
-                Update (native)
+                <label>
+                    Derive Populate <input type="checkbox" can-value="{options.runDerivePopulate}" />
+                </label>
             </th>
             <th>
-                Populate (derive)
+                <label>
+                    Native Update <input type="checkbox" can-value="{options.runNativeUpdate}" />
+                </label>
             </th>
             <th>
-                Update (derive)
+                <label>
+                    Derive Update <input type="checkbox" can-value="{options.runDeriveUpdate}" />
+                </label>
             </th>
             <th>
-                # of updates to break even
+                <label>
+                    Native + VirtualDOM Update <input type="checkbox" can-value="{options.runVirtualDomUpdate}" />
+                </label>
+            </th>
+            <th>
+                <label>
+                    Derive + DOM Update <input type="checkbox" can-value="{options.runDeriveDomUpdate}" />
+                </label>
+            </th>
+            <th>
+                <label>
+                    Reduced Native Update <input type="checkbox" can-value="{options.runReducedNativeUpdate}" />
+                </label>
+            </th>
+            <th>
+                <label>
+                    Reduced Derive Update <input type="checkbox" can-value="{options.runReducedDeriveUpdate}" />
+                </label>
+            </th>
+            <th>
+                <label>
+                    Reduced Native DOM Update <input type="checkbox" can-value="{options.runReducedNativeDomUpdate}" />
+                </label>
+            </th>
+            <th>
+                <label>
+                    Reduced Derive DOM Update <input type="checkbox" can-value="{options.runReducedDeriveDomUpdate}" />
+                </label>
+            </th>
+            <th>
+                <label>
+                    Native Batch Update <input type="checkbox" can-value="{options.runNativeBatchUpdate}" />
+                </label>
+            </th>
+            <th>
+                <label>
+                    Derive Batch Update <input type="checkbox" can-value="{options.runDeriveBatchUpdate}" />
+                </label>
             </th>
         </tr>
         {{#each testResults}}
             <tr>
                 <th>{{numberOfItems}}</th>
                 <td>{{nativePopulate}}</td>
-                <td>{{nativeUpdate}}</td>
                 <td>{{derivePopulate}}</td>
+                <td>{{nativeUpdate}}</td>
                 <td>{{deriveUpdate}}</td>
-                <td>{{breakEvenUpdateCount}}</td>
+                <td>{{virtualDomUpdate}}</td>
+                <td>{{deriveDomUpdate}}</td>
+                <td>{{reducedNativeUpdate}}</td>
+                <td>{{reducedDeriveUpdate}}</td>
+                <td>{{reducedNativeDomUpdate}}</td>
+                <td>{{reducedDeriveDomUpdate}}</td>
+                <td>{{nativeBatchUpdate}}</td>
+                <td>{{deriveBatchUpdate}}</td>
             </tr>
         {{/each}}
     </table>
+    <p><i>NOTE: All "update" tests technically perform two updates. Ask me why.</i></p>
 </script>
 
+<script src="http://wzrd.in/bundle/virtual-dom@latest"></script>
+<script src="http://wzrd.in/standalone/create-element@latest"></script>
 <script type="text/javascript" src="../node_modules/steal/steal.js"  main="list/list_benchmark"></script>

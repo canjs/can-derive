@@ -491,3 +491,21 @@ test('Returned list is read-only', function () {
     equal(filtered.attr('length'), expectedLength, '.replace() had no effect');
 
 });
+
+test('Derived list can be unbound from source', function () {
+    var list = new can.List(['a', 'b', 'c']);
+    var filtered = list.dFilter(function (value) {
+        return value === 'b';
+    });
+
+    equal(list._bindings, 2, 'Derived list is bound to source list');
+
+    // Unbind the derived list from the source (we're not concerned
+    // about the filtered list being bound to the derived list)
+    filtered._source.unbindFromSource();
+
+    equal(list._bindings, 0,
+        'Derived list is not bound to the source list');
+    equal(list._derivedList, undefined,
+        'Source list has no reference to the derived list');
+});
