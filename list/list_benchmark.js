@@ -315,7 +315,13 @@ var setupBenchmarks = function () {
                     /* jshint ignore:end */
                 },
                 teardown: function () {
+                    /* jshint ignore:start */
+
+                    // Remove the reference in the DOM that ties back to the
+                    // last filtered/source list
                     $(this.sandboxEl).empty();
+
+                    /* jshint ignore:end */
                 }
             }, utils));
         }
@@ -377,22 +383,10 @@ var setupBenchmarks = function () {
                 teardown: function () {
                     /* jshint ignore:start */
 
-                    // $(this.sandboxEl).empty();
-                    this.sandboxEl.innerHTML = '';
-
-                    state.attr('filtered', []);
-                    source.splice(0, source.attr('length') - 1);
-                    filtered._source.unbindFromSource();
-                    filtered._source.__bindEvents = {};
-                    filtered._source._bindings = 0;
-                    filtered.unbindFromSource();
-                    filtered.__bindEvents = {};
-                    filtered._bindings = 0;
-                    source.__bindEvents = {};
-                    source._bindings = 0;
-
                     // Remove the reference in the DOM that ties back to the
                     // last filtered/source list
+                    $(this.sandboxEl).empty();
+
                     /* jshint ignore:end */
                 }
             }, utils));
@@ -573,7 +567,13 @@ var setupBenchmarks = function () {
                     /* jshint ignore:end */
                 },
                 teardown: function () {
+                    /* jshint ignore:start */
+
+                    // Remove the reference in the DOM that ties back to the
+                    // last filtered/source list
                     $(this.sandboxEl).empty();
+
+                    /* jshint ignore:end */
                 }
             }, utils));
         }
@@ -640,22 +640,10 @@ var setupBenchmarks = function () {
                 teardown: function () {
                     /* jshint ignore:start */
 
-                    // $(this.sandboxEl).empty();
-                    this.sandboxEl.innerHTML = '';
-
-                    state.attr('filtered', []);
-                    source.splice(0, source.attr('length') - 1);
-                    filtered._source.unbindFromSource();
-                    filtered._source.__bindEvents = {};
-                    filtered._source._bindings = 0;
-                    filtered.unbindFromSource();
-                    filtered.__bindEvents = {};
-                    filtered._bindings = 0;
-                    source.__bindEvents = {};
-                    source._bindings = 0;
-
                     // Remove the reference in the DOM that ties back to the
                     // last filtered/source list
+                    $(this.sandboxEl).empty();
+
                     /* jshint ignore:end */
                 }
             }, utils));
