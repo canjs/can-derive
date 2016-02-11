@@ -4,6 +4,7 @@ var diff = require('can/util/array/diff.js');
 
 require("./list");
 require('can/view/autorender/autorender');
+require('can/view/stache/stache');
 
 var appState;
 
@@ -41,52 +42,26 @@ var utils = {
 // Define default values
 var ResultMap = can.Map.extend({
     define: {
-        nativePopulate: {
-            value: '-'
+        runTest: {
+            type: 'boolean',
+            value: true
         },
-        derivePopulate: {
-            value: '-'
+        numberOfItems: {
+            type: 'number'
         },
-        nativeUpdate: {
-            value: '-'
-        },
-        deriveUpdate: {
-            value: '-'
-        },
-        virtualDomUpdate: {
-            value: '-'
-        },
-        deriveDomUpdate: {
-            value: '-'
-        },
-        reducedNativeUpdate: {
-            value: '-'
-        },
-        reducedDeriveUpdate: {
-            value: '-'
-        },
-        reducedNativeDomUpdate: {
-            value: '-'
-        },
-        reducedDeriveDomUpdate: {
-            value: '-'
-        },
-        nativeBatchUpdate: {
-            value: '-'
-        },
-        deriveBatchUpdate: {
+        '*': {
             value: '-'
         }
     }
 });
 
 var testResults = new can.List([
-    new ResultMap({ numberOfItems: 1 }),
-    new ResultMap({ numberOfItems: 10 }),
-    new ResultMap({ numberOfItems: 100 }),
-    new ResultMap({ numberOfItems: 1000 }),
-    new ResultMap({ numberOfItems: 10000 }),
-    new ResultMap({ numberOfItems: 100000 }),
+    new ResultMap({ runTest: true, numberOfItems: 1 }),
+    new ResultMap({ runTest: true, numberOfItems: 10 }),
+    new ResultMap({ runTest: true, numberOfItems: 100 }),
+    new ResultMap({ runTest: true, numberOfItems: 1000 }),
+    new ResultMap({ runTest: true, numberOfItems: 10 * 1000 }),
+    new ResultMap({ runTest: true, numberOfItems: 100 * 1000 }),
 ]);
 
 var benchmarkSuite = new Benchmark.Suite('can.derive.List.dFilter')
@@ -102,6 +77,10 @@ var benchmarkSuite = new Benchmark.Suite('can.derive.List.dFilter')
 
 var setupBenchmarks = function () {
     testResults.each(function (results) {
+
+        if (! results.attr('runTest')) {
+            return;
+        }
 
         if (appState.attr('options.runNativePopulate')) {
             benchmarkSuite.add(can.extend({
@@ -317,8 +296,6 @@ var setupBenchmarks = function () {
                 teardown: function () {
                     /* jshint ignore:start */
 
-                    // Remove the reference in the DOM that ties back to the
-                    // last filtered/source list
                     $(this.sandboxEl).empty();
 
                     /* jshint ignore:end */
@@ -350,13 +327,11 @@ var setupBenchmarks = function () {
                     var renderer = can.stache(
                         "<ul>\n{{#each filtered}}\n<li></li>\n{{/each}}\n</ul>");
 
-                    var state = new can.Map({
+                    var fragment = renderer({
                         filtered: filtered
                     });
-                    var fragment = renderer(state);
 
-                    // $(this.sandboxEl).html(fragment);
-                    this.sandboxEl.appendChild(fragment);
+                    $('#sandbox').html(fragment);
 
 
                     /* jshint ignore:end */
@@ -365,7 +340,6 @@ var setupBenchmarks = function () {
                     /* jshint ignore:start */
 
                     // Update
-                    console.time('update')
                     element.attr('completed', ! element.attr('completed'));
 
                     if (filtered.attr('length') !== numberOfItems - 1) {
@@ -374,18 +348,22 @@ var setupBenchmarks = function () {
 
                     // Restore
                     element.attr('completed', ! element.attr('completed'));
-                    console.timeEnd('update')
+
                     if (filtered.attr('length') !== numberOfItems) {
                         throw 'Bad result';
                     }
+
                     /* jshint ignore:end */
                 },
                 teardown: function () {
                     /* jshint ignore:start */
 
+                    // Deal with async unbind inside of benchmarks for loop
+                    if (window.unbindComputes) { window.unbindComputes(); }
+
                     // Remove the reference in the DOM that ties back to the
                     // last filtered/source list
-                    $(this.sandboxEl).empty();
+                    $('#sandbox').empty();
 
                     /* jshint ignore:end */
                 }
@@ -519,7 +497,7 @@ var setupBenchmarks = function () {
                 setup: function () {
                     /* jshint ignore:start */
 
-                    var numberOfItems = 10000;
+                    var numberOfItems = 100000;
                     var filteredCount = this.results.attr('numberOfItems');
                     var source = this.makeArray(numberOfItems);
 
@@ -569,8 +547,6 @@ var setupBenchmarks = function () {
                 teardown: function () {
                     /* jshint ignore:start */
 
-                    // Remove the reference in the DOM that ties back to the
-                    // last filtered/source list
                     $(this.sandboxEl).empty();
 
                     /* jshint ignore:end */
@@ -586,7 +562,7 @@ var setupBenchmarks = function () {
                 setup: function () {
                     /* jshint ignore:start */
 
-                    var numberOfItems = 10000;
+                    var numberOfItems = 100000;
                     var filteredCount = this.results.attr('numberOfItems');
                     var values = this.makeArray(numberOfItems);
                     var source = new can.List();
@@ -608,13 +584,11 @@ var setupBenchmarks = function () {
                     var renderer = can.stache(
                         "<ul>\n{{#each filtered}}\n<li></li>\n{{/each}}\n</ul>");
 
-                    var state = new can.Map({
+                    var fragment = renderer({
                         filtered: filtered
                     });
-                    var fragment = renderer(state);
 
-                    // $(this.sandboxEl).html(fragment);
-                    this.sandboxEl.appendChild(fragment);
+                    $(this.sandboxEl).html(fragment);
 
                     /* jshint ignore:end */
                 },

@@ -27,6 +27,14 @@
         border-spacing: 0;
     }
 
+    .numbers {
+        white-space: nowrap;
+    }
+
+    .note {
+        font-style: italic;
+    }
+
     #sandbox {
         display: none;
     }
@@ -125,7 +133,7 @@
         </tr>
         {{#each testResults}}
             <tr>
-                <th>{{numberOfItems}}</th>
+                <th class="numbers">{{numberOfItems}}</th>
                 <td>{{nativePopulate}}</td>
                 <td>{{derivePopulate}}</td>
                 <td>{{nativeUpdate}}</td>
@@ -141,7 +149,12 @@
             </tr>
         {{/each}}
     </table>
-    <p><i>NOTE: All "update" tests technically perform two updates. Ask me why.</i></p>
+    <p class="note">
+        NOTE: All "update" tests technically perform two updates. This is
+        necessary because BenchmarkJS may run a test multiple times per
+        setup/teardown, and updated that add or remove nodes have different
+        costs in can-derive.
+    </p>
 </script>
 
 <script src="http://wzrd.in/bundle/virtual-dom@latest"></script>
