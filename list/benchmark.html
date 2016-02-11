@@ -152,8 +152,10 @@
     <p class="note">
         NOTE: All "update" tests technically perform two updates. This is
         necessary because BenchmarkJS may run a test multiple times per
-        setup/teardown, and updated that add or remove nodes have different
-        costs in can-derive.
+        setup/teardown, and updates that result in the adding or removal of
+        nodes have different costs in can-derive. By performing the update
+        twice (vs simply toggling the property per test) these differences
+        are averaged.
     </p>
 </script>
 
