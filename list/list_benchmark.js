@@ -67,7 +67,7 @@ var testResults = new can.List([
 var benchmarkSuite = new Benchmark.Suite('can.derive.List.dFilter')
     .on('cycle', function (ev) {
         var benchmark = ev.target;
-        var averageMs = benchmark.stats.mean * 1000;
+        var averageMs = (benchmark.stats.mean * benchmark.adjustment) * 1000;
 
         console.log(benchmark.toString() +
             ' [Avg runtime: ' + averageMs + ']');
@@ -84,6 +84,7 @@ var setupBenchmarks = function () {
 
         if (appState.attr('options.runNativePopulate')) {
             benchmarkSuite.add(can.extend({
+                adjustment: 1,
                 results: results,
                 key: 'nativePopulate',
                 name: 'Native populate (' + results.numberOfItems + ' items)',
@@ -112,6 +113,7 @@ var setupBenchmarks = function () {
 
         if (appState.attr('options.runDerivePopulate')) {
             benchmarkSuite.add(can.extend({
+                adjustment: 1,
                 results: results,
                 key: 'derivePopulate',
                 name: 'Derived populate (' + results.numberOfItems + ' items)',
@@ -149,6 +151,7 @@ var setupBenchmarks = function () {
 
         if (appState.attr('options.runNativeUpdate')) {
             benchmarkSuite.add(can.extend({
+                adjustment: .5,
                 results: results,
                 key: 'nativeUpdate',
                 name: 'Native update (' + results.numberOfItems + ' items)',
@@ -189,6 +192,7 @@ var setupBenchmarks = function () {
 
         if (appState.attr('options.runDeriveUpdate')) {
             benchmarkSuite.add(can.extend({
+                adjustment: .5,
                 results: results,
                 key: 'deriveUpdate',
                 name: 'Derived update (' + results.numberOfItems + ' items)',
@@ -231,8 +235,9 @@ var setupBenchmarks = function () {
             }, utils));
         }
 
-        if (appState.attr('options.runVirtualDomUpdate')) {
+        if (appState.attr('options.runVirtualDomUpdate') && results.numberOfItems <= 10 * 1000) {
             benchmarkSuite.add(can.extend({
+                adjustment: .5,
                 results: results,
                 key: 'virtualDomUpdate',
                 name: 'Virtual DOM update (' + results.numberOfItems + ' items)',
@@ -303,8 +308,9 @@ var setupBenchmarks = function () {
             }, utils));
         }
 
-        if (appState.attr('options.runDeriveDomUpdate')) {
+        if (appState.attr('options.runDeriveDomUpdate') && results.numberOfItems <= 10 * 1000) {
             benchmarkSuite.add(can.extend({
+                adjustment: .5,
                 results: results,
                 key: 'deriveDomUpdate',
                 name: 'Derived DOM update (' + results.numberOfItems + ' items)',
@@ -332,7 +338,6 @@ var setupBenchmarks = function () {
                     });
 
                     $('#sandbox').html(fragment);
-
 
                     /* jshint ignore:end */
                 },
@@ -373,6 +378,7 @@ var setupBenchmarks = function () {
 
         if (appState.attr('options.runReducedNativeUpdate')) {
             benchmarkSuite.add(can.extend({
+                adjustment: .5,
                 results: results,
                 key: 'reducedNativeUpdate',
                 name: 'Reduced Native update (' + results.numberOfItems + ' items)',
@@ -422,6 +428,7 @@ var setupBenchmarks = function () {
 
         if (appState.attr('options.runReducedDeriveUpdate')) {
             benchmarkSuite.add(can.extend({
+                adjustment: .5,
                 results: results,
                 key: 'reducedDeriveUpdate',
                 name: 'Reduced Derived update (' + results.numberOfItems + ' items)',
@@ -471,8 +478,9 @@ var setupBenchmarks = function () {
             }, utils));
         }
 
-        if (appState.attr('options.runReducedNativeDomUpdate')) {
+        if (appState.attr('options.runReducedNativeDomUpdate') && results.numberOfItems <= 10 * 1000) {
             benchmarkSuite.add(can.extend({
+                adjustment: .5,
                 results: results,
                 key: 'reducedNativeDomUpdate',
                 name: 'Reduced Native DOM update (' + results.numberOfItems + ' items)',
@@ -497,7 +505,7 @@ var setupBenchmarks = function () {
                 setup: function () {
                     /* jshint ignore:start */
 
-                    var numberOfItems = 100000;
+                    var numberOfItems = 10000;
                     var filteredCount = this.results.attr('numberOfItems');
                     var source = this.makeArray(numberOfItems);
 
@@ -554,15 +562,16 @@ var setupBenchmarks = function () {
             }, utils));
         }
 
-        if (appState.attr('options.runReducedDeriveDomUpdate')) {
+        if (appState.attr('options.runReducedDeriveDomUpdate') && results.numberOfItems <= 10 * 1000) {
             benchmarkSuite.add(can.extend({
+                adjustment: .5,
                 results: results,
                 key: 'reducedDeriveDomUpdate',
                 name: 'Reduced Derived DOM update (' + results.numberOfItems + ' items)',
                 setup: function () {
                     /* jshint ignore:start */
 
-                    var numberOfItems = 100000;
+                    var numberOfItems = 10000;
                     var filteredCount = this.results.attr('numberOfItems');
                     var values = this.makeArray(numberOfItems);
                     var source = new can.List();
@@ -625,6 +634,7 @@ var setupBenchmarks = function () {
 
         if (appState.attr('options.runNativeBatchUpdate')) {
             benchmarkSuite.add(can.extend({
+                adjustment: .5,
                 results: results,
                 key: 'nativeBatchUpdate',
                 name: 'Native batch update (' + results.numberOfItems + ' items)',
@@ -672,6 +682,7 @@ var setupBenchmarks = function () {
 
         if (appState.attr('options.runDeriveBatchUpdate')) {
             benchmarkSuite.add(can.extend({
+                adjustment: .5,
                 results: results,
                 key: 'deriveBatchUpdate',
                 name: 'Derived batch update (' + results.numberOfItems + ' items)',
