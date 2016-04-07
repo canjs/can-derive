@@ -151,7 +151,7 @@ var setupBenchmarks = function () {
 
         if (appState.attr('options.runNativeUpdate')) {
             benchmarkSuite.add(can.extend({
-                adjustment: .5,
+                adjustment: 0.5,
                 results: results,
                 key: 'nativeUpdate',
                 name: 'Native update (' + results.numberOfItems + ' items)',
@@ -192,7 +192,7 @@ var setupBenchmarks = function () {
 
         if (appState.attr('options.runDeriveUpdate')) {
             benchmarkSuite.add(can.extend({
-                adjustment: .5,
+                adjustment: 0.5,
                 results: results,
                 key: 'deriveUpdate',
                 name: 'Derived update (' + results.numberOfItems + ' items)',
@@ -237,7 +237,7 @@ var setupBenchmarks = function () {
 
         if (appState.attr('options.runVirtualDomUpdate') && results.numberOfItems <= 10 * 1000) {
             benchmarkSuite.add(can.extend({
-                adjustment: .5,
+                adjustment: 0.5,
                 results: results,
                 key: 'virtualDomUpdate',
                 name: 'Virtual DOM update (' + results.numberOfItems + ' items)',
@@ -310,7 +310,7 @@ var setupBenchmarks = function () {
 
         if (appState.attr('options.runDeriveDomUpdate') && results.numberOfItems <= 10 * 1000) {
             benchmarkSuite.add(can.extend({
-                adjustment: .5,
+                adjustment: 0.5,
                 results: results,
                 key: 'deriveDomUpdate',
                 name: 'Derived DOM update (' + results.numberOfItems + ' items)',
@@ -378,7 +378,7 @@ var setupBenchmarks = function () {
 
         if (appState.attr('options.runReducedNativeUpdate')) {
             benchmarkSuite.add(can.extend({
-                adjustment: .5,
+                adjustment: 0.5,
                 results: results,
                 key: 'reducedNativeUpdate',
                 name: 'Reduced Native update (' + results.numberOfItems + ' items)',
@@ -428,7 +428,7 @@ var setupBenchmarks = function () {
 
         if (appState.attr('options.runReducedDeriveUpdate')) {
             benchmarkSuite.add(can.extend({
-                adjustment: .5,
+                adjustment: 0.5,
                 results: results,
                 key: 'reducedDeriveUpdate',
                 name: 'Reduced Derived update (' + results.numberOfItems + ' items)',
@@ -480,7 +480,7 @@ var setupBenchmarks = function () {
 
         if (appState.attr('options.runReducedNativeDomUpdate') && results.numberOfItems <= 10 * 1000) {
             benchmarkSuite.add(can.extend({
-                adjustment: .5,
+                adjustment: 0.5,
                 results: results,
                 key: 'reducedNativeDomUpdate',
                 name: 'Reduced Native DOM update (' + results.numberOfItems + ' items)',
@@ -564,7 +564,7 @@ var setupBenchmarks = function () {
 
         if (appState.attr('options.runReducedDeriveDomUpdate') && results.numberOfItems <= 10 * 1000) {
             benchmarkSuite.add(can.extend({
-                adjustment: .5,
+                adjustment: 0.5,
                 results: results,
                 key: 'reducedDeriveDomUpdate',
                 name: 'Reduced Derived DOM update (' + results.numberOfItems + ' items)',
@@ -634,7 +634,7 @@ var setupBenchmarks = function () {
 
         if (appState.attr('options.runNativeBatchUpdate')) {
             benchmarkSuite.add(can.extend({
-                adjustment: .5,
+                adjustment: 0.5,
                 results: results,
                 key: 'nativeBatchUpdate',
                 name: 'Native batch update (' + results.numberOfItems + ' items)',
@@ -682,7 +682,7 @@ var setupBenchmarks = function () {
 
         if (appState.attr('options.runDeriveBatchUpdate')) {
             benchmarkSuite.add(can.extend({
-                adjustment: .5,
+                adjustment: 0.5,
                 results: results,
                 key: 'deriveBatchUpdate',
                 name: 'Derived batch update (' + results.numberOfItems + ' items)',
