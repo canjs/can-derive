@@ -16,18 +16,18 @@
     "url": "git://github.com/canjs/can-derive.git"
   },
   "dependencies": {
-    "can": "^2.3.0",
+    "can": "^3.2.2",
     "can-binarytree": "^0.0"
   },
   "devDependencies": {
-    "benchmark": "1.0.0",
-    "jshint": "2.7.0",
-    "serve": "1.4.0",
-    "steal": "0.13.0",
-    "steal-qunit": "0.0.2",
-    "steal-tools": "0.13.0",
-    "system-npm": "0.3.0",
-    "testee": "^0.2.0"
+    "benchmark": "2.1.2",
+    "jshint": "2.9.4",
+    "serve": "2.0.0",
+    "steal": "0.16.43",
+    "steal-qunit": "0.1.4",
+    "steal-tools": "0.16.8",
+    "system-npm": "0.6.31",
+    "testee": "^0.3.0"
   },
   "system": {
     "meta": {
