@@ -17,7 +17,7 @@ representation of with the source list regardless of how it was manipulated.
 **can-derive** is ideal for cases where the source list contains at least
 10 items and is expected to be "changed" frequently (3 or more times).
 
-See it in action on <a href="http://jsbin.com/dinisu/5/edit?js,console" target="_blank">JSBin</a>.
+Check out <a href="http://canjs.github.io/can-derive/" target="_blank">the demo</a>.
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
