@@ -24,7 +24,7 @@
     "jshint": "2.7.0",
     "serve": "1.4.0",
     "steal": "0.13.0",
-    "steal-qunit": "0.0.2",
+    "steal-qunit": "^2.0.0",
     "steal-tools": "0.13.0",
     "system-npm": "0.3.0",
     "testee": "^0.2.0"
